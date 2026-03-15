@@ -1,45 +1,37 @@
 version: "3.8"
 
 x-common-env: &common-env
-  REDIS_HOST: ${REDIS_HOST:-host.docker.internal}
-  REDIS_PORT: ${REDIS_PORT:-6379}
-  REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-  REDIS_DB: ${REDIS_DB:-0}
-  JOB_CONCURRENCY: ${JOB_CONCURRENCY:-4}
-  JOB_MAX_ATTEMPTS: ${JOB_MAX_ATTEMPTS:-5}
-  JOB_BACKOFF_DELAY_MS: ${JOB_BACKOFF_DELAY_MS:-5000}
-  BULL_BOARD_BASE_PATH: ${BULL_BOARD_BASE_PATH:-/admin/queues}
-  BULLMQ_QUEUE_NAME: ${BULLMQ_QUEUE_NAME:-whatsapp-flows}
-  R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
-  R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
-  R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
-  R2_BUCKET: ${R2_BUCKET:-}
-  R2_REGION: ${R2_REGION:-auto}
-  R2_KEY_PREFIX: ${R2_KEY_PREFIX:-flows}
-  R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+
+  JOB_CONCURRENCY: 4
+  JOB_MAX_ATTEMPTS: 5
+  JOB_BACKOFF_DELAY_MS: 5000
+  BULLMQ_QUEUE_NAME: whatsapp-flows
+
+  R2_ACCOUNT_ID: "70a41e8a2dd0ed2395771e2a48c2a83a"
+  R2_ACCESS_KEY_ID: "c5114fb4b0fecd5a5f9469a2fec7bda2"
+  R2_SECRET_ACCESS_KEY: "3a0d894cf904dd9bf8d89c21a05a9cd2ff66b67fb8ee711612e9a80409ed084d"
+  R2_BUCKET: "eaf"
+  R2_REGION: "auto"
+  R2_KEY_PREFIX: "flows"
+  R2_PUBLIC_BASE_URL: "https://pub-c54ecb6f6021463e95790b49774c4e8c.r2.dev"
 
 services:
   whatsapp-flows-endpoint:
     build: .
     container_name: whatsapp-flows-endpoint
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "3005:3005"
-    env_file:
-      - .env
+    networks:
+      - proxy_public
+      - shared_services
     environment:
       <<: *common-env
-      PORT: ${PORT:-3005}
-      PRIVATE_KEY: ${PRIVATE_KEY:-}
-      PRIVATE_KEY_BASE64: ${PRIVATE_KEY_BASE64:-}
-      ELIGIBILITY_API_URL: ${ELIGIBILITY_API_URL:-}
-      EXTRA_PHASE_FAMILY_API_URL: ${EXTRA_PHASE_FAMILY_API_URL:-}
-      FAMILY_CODE_VERIFICATION_API_URL: ${FAMILY_CODE_VERIFICATION_API_URL:-}
-      CITY_AVAILABILITY_API_URL: ${CITY_AVAILABILITY_API_URL:-}
-      EXTRA_PHASE_IBGE_API_URL: ${EXTRA_PHASE_IBGE_API_URL:-}
-      CEP_API_URL: ${CEP_API_URL:-}
+      PORT: 3005
+      BULL_BOARD_BASE_PATH: /admin/queues
+      PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQDbI6x1ETTymagw\nsON4eF2N24OOBDT1AsqYg/DyAMjK3tN/RKjUOgcgZpFTHLVtcD/4GUjP2wz+NRDS\nEWKhwJWR3J+MvjJnWX7EI1M6NvyuJ3704p9O5uYQywDrJl5qJs4HuZiDxZ6fOcyU\nydo9oslzgyoiE4edE6bSa77L+6nXT1ec2E0Rps7PD5Kv2WTqRZCtemuqH9NiFPvc\nVf1rY9URogD4qt0J4kB07eOkoWe0Iv1rkUqOgELMp+tnLIO2lcOA9KC5X+x825yO\nKKOqnW2LX/KPpIJ4mUtYc6dTVksHKhpWZ77KXE/MQXa1darVhEtulPmrg58Iq1UU\nSSDba6wjAgMBAAECgf9DI5FD5k59OKes7fx/Bfs9YYPTKan+3n4zxJ84MI3czSPu\nOAFfrvAqsFMaPUKL5zYYgFFOkLS3LZwCN8jVkryEyT4Yxz4QfQ4d54GPw1oerAwx\nDAp+xC5SOxM3ownBr0QJ97lTlOuVZY7qj5gSBfiQYuwWyOT/dsolnMwk1Q+SAO/9\nhUoIqs5dk0/rJQx3HOtNsp6yu3HuSuwCFLuvwDsraxxUqJxyvkenm7s/Tw9K2DlW\n8aW8jnCeWZgmwHx5q19EzzC95A9Yzz0MD5kYdHXtO9IEjtJT6XYWd5QB2OXmnXki\nACGFDRUQ+1Jo20l+lZm+bUXPc2hOMxownxpi5lUCgYEA+hPep+jDq3nLA8JBYoLZ\n...\n-----END PRIVATE KEY-----"
     volumes:
       - ./data:/app/data
 
@@ -48,19 +40,15 @@ services:
     container_name: whatsapp-flows-worker
     restart: unless-stopped
     command: ["npm", "run", "worker"]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file:
-      - .env
+    networks:
+      - shared_services
     environment:
       <<: *common-env
-      PRIVATE_KEY: ${PRIVATE_KEY:-}
-      PRIVATE_KEY_BASE64: ${PRIVATE_KEY_BASE64:-}
-      ELIGIBILITY_API_URL: ${ELIGIBILITY_API_URL:-}
-      EXTRA_PHASE_FAMILY_API_URL: ${EXTRA_PHASE_FAMILY_API_URL:-}
-      FAMILY_CODE_VERIFICATION_API_URL: ${FAMILY_CODE_VERIFICATION_API_URL:-}
-      CITY_AVAILABILITY_API_URL: ${CITY_AVAILABILITY_API_URL:-}
-      EXTRA_PHASE_IBGE_API_URL: ${EXTRA_PHASE_IBGE_API_URL:-}
-      CEP_API_URL: ${CEP_API_URL:-}
     volumes:
       - ./data:/app/data
+
+networks:
+  proxy_public:
+    external: true
+  shared_services:
+    external: true
