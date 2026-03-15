@@ -1,0 +1,71 @@
+
+{
+  "version": "7.1",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "FORM_MAIN": ["SUCCESS"]
+  },
+  "screens": [
+    {
+      "id": "FORM_MAIN",
+      "title": "Envio de dados",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "main_form",
+            "children": [
+              {
+                "type": "TextInput",
+                "name": "nome",
+                "label": "Nome",
+                "required": true
+              },
+              {
+                "type": "TextArea",
+                "name": "descricao",
+                "label": "Descrição",
+                "required": true
+              },
+              {
+                "type": "PhotoPicker",
+                "name": "foto_1",
+                "label": "Envie uma foto",
+                "required": true
+              },
+              {
+                "type": "Footer",
+                "label": "Concluir",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "nome": "${form.nome}",
+                    "descricao": "${form.descricao}",
+                    "foto_1": "${form.foto_1}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUCCESS",
+      "title": "Concluído",
+      "terminal": true,
+      "success": true,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextHeading",
+            "text": "Recebemos seus dados com sucesso"
+          }
+        ]
+      }
+    }
+  ]
+}
