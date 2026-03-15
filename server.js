@@ -17,7 +17,7 @@ function loadPrivateKey() {
   if (process.env.PRIVATE_KEY_BASE64) {
     return Buffer.from(process.env.PRIVATE_KEY_BASE64, "base64").toString("utf8");
   }
-  return process.env.PRIVATE_KEY?.replace(/\n/g, "
+  return process.env.PRIVATE_KEY?.replace(/\\n/g, "\n");
 ");
 }
 
