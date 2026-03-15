@@ -2,7 +2,7 @@ import crypto from "crypto";
 
 function flipIV(iv) {
   const flipped = Buffer.alloc(iv.length);
-  for (let i = 0; i < iv.length; i++) {
+  for (let i = 0; i < iv.length; i += 1) {
     flipped[i] = iv[i] ^ 0xff;
   }
   return flipped;
@@ -19,8 +19,9 @@ export function decryptRequest(body, privateKey) {
   const aesKey = crypto.privateDecrypt(
     {
       key: privateKey,
+      format: "pem",
       padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-      oaepHash: "sha256",
+      oaepHash: "sha256"
     },
     encryptedKey
   );
@@ -30,27 +31,25 @@ export function decryptRequest(body, privateKey) {
 
   const decrypted = Buffer.concat([
     decipher.update(encryptedBody),
-    decipher.final(),
+    decipher.final()
   ]).toString("utf8");
 
   return {
     decryptedBody: JSON.parse(decrypted),
     aesKeyBuffer: aesKey,
-    initialVectorBuffer: iv,
+    initialVectorBuffer: iv
   };
 }
 
 export function encryptResponse(payload, aesKey, iv) {
   const flippedIV = flipIV(iv);
-
   const cipher = crypto.createCipheriv("aes-128-gcm", aesKey, flippedIV);
 
   const encrypted = Buffer.concat([
     cipher.update(JSON.stringify(payload), "utf8"),
-    cipher.final(),
+    cipher.final()
   ]);
 
   const authTag = cipher.getAuthTag();
-
   return Buffer.concat([encrypted, authTag]).toString("base64");
 }
