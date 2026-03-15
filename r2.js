@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 function normalizePrefix(value = "") {
   return value.replace(/^\/+|\/+$/g, "");
@@ -49,12 +49,10 @@ export async function uploadBufferToR2(r2, params) {
     throw new Error("protocolNumber inválido para pasta do bucket");
   }
 
-  const fieldFolder = sanitizeFolder(params.fieldName || "arquivo");
   const fileName = sanitizeFolder(params.fileName || "arquivo.bin") || "arquivo.bin";
-  const prefix = [r2.keyPrefix, protocolFolder, fieldFolder].filter(Boolean).join("/");
-  const key = `${prefix}/${fileName}`;
+  const key = [r2.keyPrefix, protocolFolder, fileName].filter(Boolean).join("/");
 
-  await r2.client.send(
+  const putResult = await r2.client.send(
     new PutObjectCommand({
       Bucket: r2.bucket,
       Key: key,
@@ -62,14 +60,16 @@ export async function uploadBufferToR2(r2, params) {
       ContentType: params.contentType || "application/octet-stream",
       Metadata: {
         protocol: protocolFolder,
-        field: fieldFolder
+        field: sanitizeFolder(params.fieldName || "arquivo")
       }
     })
   );
+
+  await r2.client.send(new HeadObjectCommand({ Bucket: r2.bucket, Key: key }));
 
   const publicUrl = r2.publicBaseUrl
     ? `${r2.publicBaseUrl.replace(/\/+$/g, "")}/${key}`
     : null;
 
-  return { key, publicUrl };
+  return { key, publicUrl, etag: putResult.ETag || null };
 }

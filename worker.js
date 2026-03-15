@@ -8,12 +8,11 @@ function pickMediaFields(data) {
   });
 }
 
-function buildOutputFileName(media, extension, index) {
-  const original = (media.file_name || "").normalize("NFKC").replace(/[^\w.\-]+/g, "_");
-  if (original && original.includes(".")) {
-    return original;
-  }
-  return `imagem_${index + 1}.${extension || "bin"}`;
+function sanitizeStageName(value = "") {
+  return String(value)
+    .normalize("NFKC")
+    .replace(/[^\w\-.]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "etapa";
 }
 
 function guessContentType(extension, fallbackMime) {
@@ -35,28 +34,27 @@ export async function processFlowUploadJob(payload, context) {
   for (const [fieldName, mediaItems] of pickMediaFields(payload.data)) {
     for (let index = 0; index < mediaItems.length; index += 1) {
       const media = mediaItems[index];
-      const { buffer, extension, sanitizedFileName, mimeType } = await fetchAndDecryptFlowMedia(media);
-
-      const finalFileName = buildOutputFileName(
-        { ...media, file_name: sanitizedFileName },
-        extension,
-        index
-      );
+      const { buffer, extension, mimeType } = await fetchAndDecryptFlowMedia(media);
+      const safeStageName = sanitizeStageName(fieldName);
+      const finalFileName = mediaItems.length > 1
+        ? `${safeStageName}_${index + 1}.${extension || "bin"}`
+        : `${safeStageName}.${extension || "bin"}`;
 
       const upload = await uploadBufferToR2(payload.r2, {
         protocolNumber,
-        fieldName,
+        fieldName: safeStageName,
         fileName: finalFileName,
         buffer,
         contentType: guessContentType(path.extname(finalFileName).slice(1), mimeType)
       });
 
       uploadedFiles.push({
-        fieldName,
+        fieldName: safeStageName,
         originalFileName: media.file_name,
         mediaId: media.media_id,
         key: upload.key,
-        publicUrl: upload.publicUrl
+        publicUrl: upload.publicUrl,
+        status: "uploaded"
       });
     }
   }
@@ -64,6 +62,7 @@ export async function processFlowUploadJob(payload, context) {
   return {
     protocolNumber,
     uploadedCount: uploadedFiles.length,
-    uploadedFiles
+    uploadedFiles,
+    status: "completed"
   };
 }
