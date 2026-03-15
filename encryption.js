@@ -1,13 +1,4 @@
-
 import crypto from "crypto";
-
-/*
-Implementação baseada no exemplo oficial da Meta para WhatsApp Flows endpoint.
-Ele usa:
-
-- RSA para descriptografar a chave AES
-- AES-256-CBC para descriptografar o payload
-*/
 
 export function decryptRequest(body, privateKey) {
   const encryptedKey = Buffer.from(body.encrypted_aes_key, "base64");
@@ -17,7 +8,8 @@ export function decryptRequest(body, privateKey) {
   const aesKey = crypto.privateDecrypt(
     {
       key: privateKey,
-      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256"
     },
     encryptedKey
   );
@@ -26,7 +18,7 @@ export function decryptRequest(body, privateKey) {
   let decrypted = decipher.update(encryptedPayload);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-  const decryptedBody = JSON.parse(decrypted.toString());
+  const decryptedBody = JSON.parse(decrypted.toString("utf8"));
 
   return {
     decryptedBody,
@@ -38,7 +30,7 @@ export function decryptRequest(body, privateKey) {
 export function encryptResponse(payload, aesKey, iv) {
   const cipher = crypto.createCipheriv("aes-256-cbc", aesKey, iv);
 
-  let encrypted = cipher.update(JSON.stringify(payload));
+  let encrypted = cipher.update(JSON.stringify(payload), "utf8");
   encrypted = Buffer.concat([encrypted, cipher.final()]);
 
   return {
