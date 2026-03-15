@@ -68,11 +68,15 @@ app.post("/whatsapp/flows", async (req, res) => {
     const { action, version, screen, data, flow_token } = decryptedBody;
 
     if (action === "ping") {
-      const encryptedResponse = encryptResponse(
-        {
-          version: version || "3.0",
-          data: { status: "active" }
+      const responsePayload = {
+        version: version || "3.0",
+        data: {
+          status: "active",
         },
+      };
+
+      const encryptedResponse = encryptResponse(
+        responsePayload,
         aesKeyBuffer,
         initialVectorBuffer
       );
@@ -81,11 +85,15 @@ app.post("/whatsapp/flows", async (req, res) => {
     }
 
     if (action === "INIT") {
-      const encryptedResponse = encryptResponse(
-        {
-          screen: "FORM_MAIN",
-          data: {}
+      const responsePayload = {
+        screen: "FORM_MAIN",
+        data: {
+          protocolo: data?.protocolo || "",
         },
+      };
+
+      const encryptedResponse = encryptResponse(
+        responsePayload,
         aesKeyBuffer,
         initialVectorBuffer
       );
@@ -94,45 +102,50 @@ app.post("/whatsapp/flows", async (req, res) => {
     }
 
     if (action === "data_exchange") {
-      const protocolNumber = String(data?.protocolo || "").trim();
-      if (!protocolNumber) {
-        const encryptedResponse = encryptResponse(
-          {
-            screen: screen || "FORM_MAIN",
-            data: {
-              error_message: "Informe o número do protocolo."
-            }
-          },
-          aesKeyBuffer,
-          initialVectorBuffer
-        );
-
-        return res.status(200).type("text/plain").send(encryptedResponse);
-      }
-
       console.log("Flow token:", flow_token);
       console.log("Screen:", screen);
       console.log("Payload recebido:", JSON.stringify(data, null, 2));
 
-      await queue.enqueue({
-        protocolNumber,
-        flowToken: flow_token,
-        screen,
-        receivedAt: new Date().toISOString(),
-        data
-      });
+      // Aqui entra sua lógica:
+      // - salvar no banco
+      // - criar job
+      // - enviar imagem para bucket
+      // - usar data.protocolo como pasta
 
-      return res
-        .status(200)
-        .type("text/plain")
-        .send(successResponse(aesKeyBuffer, initialVectorBuffer, protocolNumber));
+      const responsePayload = {
+        screen: "FINISH",
+        data: {
+          extension_message_response: {
+            params: {
+              flow_token,
+              protocolo: data?.protocolo || "",
+              nome: data?.nome || "",
+              descricao: data?.descricao || ""
+            }
+          }
+        }
+      };
+
+      console.log("Response payload:", JSON.stringify(responsePayload, null, 2));
+
+      const encryptedResponse = encryptResponse(
+        responsePayload,
+        aesKeyBuffer,
+        initialVectorBuffer
+      );
+
+      return res.status(200).type("text/plain").send(encryptedResponse);
     }
 
-    const encryptedResponse = encryptResponse(
-      {
-        version: version || "3.0",
-        data: { status: "active" }
+    const fallbackPayload = {
+      version: version || "3.0",
+      data: {
+        status: "active",
       },
+    };
+
+    const encryptedResponse = encryptResponse(
+      fallbackPayload,
       aesKeyBuffer,
       initialVectorBuffer
     );
