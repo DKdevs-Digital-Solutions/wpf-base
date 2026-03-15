@@ -4,7 +4,7 @@ import { uploadBufferToR2 } from "./r2.js";
 
 function pickMediaFields(data) {
   return Object.entries(data || {}).filter(([, value]) => {
-    return Array.isArray(value) && value.every((item) => item?.cdn_url && item?.encryption_metadata);
+    return Array.isArray(value) && value.length > 0 && value.every((item) => item?.cdn_url && item?.encryption_metadata);
   });
 }
 
@@ -23,15 +23,20 @@ function guessContentType(extension, fallbackMime) {
   return fallbackMime || "application/octet-stream";
 }
 
-export async function processFlowUploadJob(payload, context) {
-  const protocolNumber = String(payload.protocolNumber || "").trim();
+export async function processFlowUploadJob(payload) {
+  const protocolNumber = String(payload.protocolo || payload.protocolNumber || "").trim();
   if (!protocolNumber) {
     throw new Error("protocolNumber não informado");
   }
 
-  const uploadedFiles = [];
+  if (!payload.r2) {
+    throw new Error("Cliente R2 não configurado");
+  }
 
-  for (const [fieldName, mediaItems] of pickMediaFields(payload.data)) {
+  const uploadedFiles = [];
+  const mediaFields = pickMediaFields(payload.data);
+
+  for (const [fieldName, mediaItems] of mediaFields) {
     for (let index = 0; index < mediaItems.length; index += 1) {
       const media = mediaItems[index];
       const { buffer, extension, mimeType } = await fetchAndDecryptFlowMedia(media);
@@ -60,9 +65,9 @@ export async function processFlowUploadJob(payload, context) {
   }
 
   return {
-    protocolNumber,
+    protocolo: protocolNumber,
     uploadedCount: uploadedFiles.length,
     uploadedFiles,
-    status: "completed"
+    finishedAt: new Date().toISOString()
   };
 }

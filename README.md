@@ -1,61 +1,107 @@
-# WhatsApp Flows endpoint com fila em Node + Cloudflare R2
+# WhatsApp Flows + BullMQ
 
-Projeto pronto para:
+Projeto atualizado para o fluxo:
 
-- validar endpoint do WhatsApp Flows
-- receber fotos por `PhotoPicker`
-- responder rápido ao `data_exchange`
-- processar upload em segundo plano
-- salvar arquivos no Cloudflare R2 usando o número de protocolo como pasta
-- usar o nome da etapa como nome do arquivo
-- consultar depois se funcionou pelo protocolo
+- CPF_INPUT
+- TELEFONE_PRINCIPAL
+- TELEFONE_RECADO
+- CEP_INPUT
+- CONFIRMA_ENDERECO_CEP
+- COMPLEMENTA_ENDERECO
+- PONTO_REFERENCIA
+- TIPO_DOCUMENTO
+- DOC_FRENTE
+- DOC_VERSO
+- SELFIE_COM_DOC
+- COMPROVANTE
+- FACHADA
+- TV_LIGADA
+- RESUMO_FINAL
+- CONFIRMACAO_FINAL
+- FINISH
 
-## Como funciona
+## O que mudou
 
-1. O endpoint `/whatsapp/flows` recebe o payload criptografado do Flow.
-2. No `data_exchange`, o projeto grava um job em `data/jobs/pending`.
-3. O Flow finaliza e devolve a resposta ao chat com `extension_message_response`.
-4. Um worker interno do Node consome os jobs com concorrência configurável.
-5. Cada imagem é baixada, validada, descriptografada e enviada ao R2.
-6. Você consulta o resultado em `GET /status/:protocolNumber`.
+- troca da fila em arquivo por **BullMQ + Redis**
+- separação entre API (`server.js`) e worker (`bull-worker.js`)
+- retorno padronizado no Flow para encerramentos fora do comum:
+  - `status = failure`
+  - `reason_code = ...`
+  - `reason = ...`
+- revalidação de **CEP + viabilidade + fase extra** sempre que o CEP for informado novamente
+- endpoint de status por protocolo e por job
 
-## Estrutura no bucket
-
-```text
-flows/NUMERO_DO_PROTOCOLO/foto_frente.jpg
-flows/NUMERO_DO_PROTOCOLO/foto_verso.jpg
-```
-
-Se houver mais de um arquivo na mesma etapa:
-
-```text
-flows/NUMERO_DO_PROTOCOLO/foto_frente_1.jpg
-flows/NUMERO_DO_PROTOCOLO/foto_frente_2.jpg
-```
-
-## Endpoint de status
+## Subida local
 
 ```bash
-GET /status/123456
+cp env.example .env
+docker compose up --build
 ```
 
-Exemplo de resposta:
+## Serviços
+
+- API: `http://localhost:3005`
+- Redis: `localhost:6379`
+- endpoint do flow: `POST /whatsapp/flows`
+- health: `GET /health`
+- status por protocolo: `GET /status/:protocolNumber`
+- status por job: `GET /status/job/:jobId`
+
+## Como saber se o job executou ou falhou
+
+Consultar:
+
+```bash
+GET /status/PROTOCOLO_123456
+```
+
+Exemplo:
 
 ```json
 {
   "ok": true,
-  "protocolNumber": "123456",
-  "queueFolder": "completed",
-  "jobId": "...",
+  "protocolo": "PROTOCOLO_123456",
+  "jobId": "12",
   "status": "completed",
-  "uploadedCount": 2,
-  "uploadedFiles": [
-    {
-      "fieldName": "foto_frente",
-      "key": "flows/123456/foto_frente.jpg",
-      "publicUrl": null,
-      "status": "uploaded"
-    }
-  ]
+  "attemptsMade": 1,
+  "failedReason": null,
+  "result": {
+    "uploadedCount": 6
+  }
 }
 ```
+
+Status possíveis mais comuns:
+
+- `waiting`
+- `active`
+- `completed`
+- `failed`
+- `delayed`
+
+## Variáveis extras para integrações
+
+```env
+ELIGIBILITY_API_URL=
+EXTRA_PHASE_FAMILY_API_URL=
+FAMILY_CODE_VERIFICATION_API_URL=
+CITY_AVAILABILITY_API_URL=
+EXTRA_PHASE_IBGE_API_URL=
+CEP_API_URL=
+```
+
+Sem essas URLs, o projeto usa validações locais e fallback de CEP via ViaCEP.
+
+## Observação sobre falhas de negócio
+
+Quando o backend identificar casos como:
+
+- CPF inválido
+- não elegível
+- sem fase extra
+- cidade não atendida
+- já possui instalação
+- já possui agendamento
+- confirmação negada
+
+o Flow é encerrado em `FINISH` com `status=failure`, `reason_code` e `reason`, para você continuar fora do Flow.

@@ -1,49 +1,47 @@
-
 {
   "version": "7.1",
   "data_api_version": "3.0",
   "routing_model": {
-    "FORM_MAIN": ["SUCCESS"]
+    "CPF_INPUT": ["TELEFONE_PRINCIPAL", "FINISH"],
+    "TELEFONE_PRINCIPAL": ["TELEFONE_RECADO", "FINISH"],
+    "TELEFONE_RECADO": ["CEP_INPUT", "FINISH"],
+    "CEP_INPUT": ["CONFIRMA_ENDERECO_CEP", "FINISH"],
+    "CONFIRMA_ENDERECO_CEP": ["CEP_INPUT", "COMPLEMENTA_ENDERECO", "FINISH"],
+    "COMPLEMENTA_ENDERECO": ["PONTO_REFERENCIA", "FINISH"],
+    "PONTO_REFERENCIA": ["TIPO_DOCUMENTO", "FINISH"],
+    "TIPO_DOCUMENTO": ["DOC_FRENTE", "FINISH"],
+    "DOC_FRENTE": ["DOC_VERSO", "FINISH"],
+    "DOC_VERSO": ["SELFIE_COM_DOC", "FINISH"],
+    "SELFIE_COM_DOC": ["COMPROVANTE", "FINISH"],
+    "COMPROVANTE": ["FACHADA", "FINISH"],
+    "FACHADA": ["TV_LIGADA", "FINISH"],
+    "TV_LIGADA": ["RESUMO_FINAL", "FINISH"],
+    "RESUMO_FINAL": ["CONFIRMACAO_FINAL", "FINISH"],
+    "CONFIRMACAO_FINAL": ["FINISH"]
   },
   "screens": [
     {
-      "id": "FORM_MAIN",
-      "title": "Envio de dados",
+      "id": "CPF_INPUT",
+      "title": "CPF",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
+          { "type": "TextBody", "text": "Informe o CPF para validar elegibilidade e fase extra." },
           {
             "type": "Form",
-            "name": "main_form",
+            "name": "cpf_form",
             "children": [
-              {
-                "type": "TextInput",
-                "name": "nome",
-                "label": "Nome",
-                "required": true
-              },
-              {
-                "type": "TextArea",
-                "name": "descricao",
-                "label": "Descrição",
-                "required": true
-              },
-              {
-                "type": "PhotoPicker",
-                "name": "foto_1",
-                "label": "Envie uma foto",
-                "required": true
-              },
+              { "type": "TextInput", "name": "protocolo", "label": "Protocolo", "required": true },
+              { "type": "TextInput", "name": "cpf", "label": "CPF", "required": true, "input-type": "number" },
               {
                 "type": "Footer",
-                "label": "Concluir",
+                "label": "Continuar",
                 "on-click-action": {
                   "name": "data_exchange",
                   "payload": {
-                    "nome": "${form.nome}",
-                    "descricao": "${form.descricao}",
-                    "foto_1": "${form.foto_1}"
+                    "protocolo": "${form.protocolo}",
+                    "cpf": "${form.cpf}"
                   }
                 }
               }
@@ -53,16 +51,676 @@
       }
     },
     {
-      "id": "SUCCESS",
-      "title": "Concluído",
+      "id": "TELEFONE_PRINCIPAL",
+      "title": "Telefone principal",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Informe o telefone principal com DDD." },
+          {
+            "type": "Form",
+            "name": "telefone_principal_form",
+            "children": [
+              { "type": "TextInput", "name": "telefone_principal", "label": "Telefone principal", "required": true, "input-type": "number" },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${form.telefone_principal}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "TELEFONE_RECADO",
+      "title": "Telefone para recado",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Se houver, informe um telefone para recado. Se não houver, pode enviar vazio." },
+          {
+            "type": "Form",
+            "name": "telefone_recado_form",
+            "children": [
+              { "type": "TextInput", "name": "telefone_recado", "label": "Telefone para recado", "required": false, "input-type": "number" },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${form.telefone_recado}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CEP_INPUT",
+      "title": "CEP",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Informe o CEP. Sempre que ele for alterado, o backend revalida viabilidade e fase extra." },
+          {
+            "type": "Form",
+            "name": "cep_form",
+            "children": [
+              { "type": "TextInput", "name": "cep", "label": "CEP", "required": true, "input-type": "number" },
+              {
+                "type": "Footer",
+                "label": "Validar CEP",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${form.cep}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CONFIRMA_ENDERECO_CEP",
+      "title": "Confirmar endereço",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Confira o endereço retornado pelo CEP:" },
+          { "type": "TextBody", "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nEstado: ${data.estado}" },
+          {
+            "type": "Form",
+            "name": "confirmar_endereco_form",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "confirmar_endereco_cep",
+                "label": "Os dados estão corretos?",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Sim" },
+                  { "id": "nao", "title": "Não" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Continuar",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "confirmar_endereco_cep": "${form.confirmar_endereco_cep}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "COMPLEMENTA_ENDERECO",
+      "title": "Complementar endereço",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "complementa_endereco_form",
+            "children": [
+              { "type": "TextInput", "name": "numero", "label": "Número", "required": true },
+              { "type": "TextInput", "name": "bairro", "label": "Bairro", "required": true },
+              { "type": "TextInput", "name": "complemento", "label": "Complemento", "required": false },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${form.numero}",
+                    "bairro": "${form.bairro}",
+                    "complemento": "${form.complemento}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "PONTO_REFERENCIA",
+      "title": "Ponto de referência",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "ponto_referencia_form",
+            "children": [
+              { "type": "TextArea", "name": "ponto_referencia", "label": "Ponto de referência", "required": true },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${form.ponto_referencia}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "TIPO_DOCUMENTO",
+      "title": "Tipo de documento",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "tipo_documento_form",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "tipo_documento",
+                "label": "Selecione o documento",
+                "required": true,
+                "data-source": [
+                  { "id": "RG", "title": "RG" },
+                  { "id": "CNH", "title": "CNH" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${form.tipo_documento}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "DOC_FRENTE",
+      "title": "Documento - frente",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Envie a foto da frente do documento." },
+          {
+            "type": "Form",
+            "name": "doc_frente_form",
+            "children": [
+              { "type": "PhotoPicker", "name": "foto_frente", "label": "Foto da frente", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${form.foto_frente}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "DOC_VERSO",
+      "title": "Documento - verso",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Envie a foto do verso do documento." },
+          {
+            "type": "Form",
+            "name": "doc_verso_form",
+            "children": [
+              { "type": "PhotoPicker", "name": "foto_verso", "label": "Foto do verso", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${form.foto_verso}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "SELFIE_COM_DOC",
+      "title": "Selfie com documento",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "selfie_com_doc_form",
+            "children": [
+              { "type": "PhotoPicker", "name": "selfie_com_doc", "label": "Selfie com documento", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${data.foto_verso}",
+                    "selfie_com_doc": "${form.selfie_com_doc}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "COMPROVANTE",
+      "title": "Comprovante",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "comprovante_form",
+            "children": [
+              { "type": "PhotoPicker", "name": "comprovante", "label": "Comprovante de residência", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${data.foto_verso}",
+                    "selfie_com_doc": "${data.selfie_com_doc}",
+                    "comprovante": "${form.comprovante}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "FACHADA",
+      "title": "Fachada",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "fachada_form",
+            "children": [
+              { "type": "PhotoPicker", "name": "fachada", "label": "Foto da fachada", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${data.foto_verso}",
+                    "selfie_com_doc": "${data.selfie_com_doc}",
+                    "comprovante": "${data.comprovante}",
+                    "fachada": "${form.fachada}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "TV_LIGADA",
+      "title": "TV ligada",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "tv_ligada_form",
+            "children": [
+              { "type": "PhotoPicker", "name": "tv_ligada", "label": "Foto da TV ligada", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "Footer",
+                "label": "Gerar resumo",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${data.foto_verso}",
+                    "selfie_com_doc": "${data.selfie_com_doc}",
+                    "comprovante": "${data.comprovante}",
+                    "fachada": "${data.fachada}",
+                    "tv_ligada": "${form.tv_ligada}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "RESUMO_FINAL",
+      "title": "Resumo final",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Confira abaixo os dados do atendimento:" },
+          { "type": "TextBody", "text": "${data.resumo_texto}" },
+          {
+            "type": "Form",
+            "name": "resumo_final_form",
+            "children": [
+              {
+                "type": "Footer",
+                "label": "Ir para confirmação",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${data.foto_verso}",
+                    "selfie_com_doc": "${data.selfie_com_doc}",
+                    "comprovante": "${data.comprovante}",
+                    "fachada": "${data.fachada}",
+                    "tv_ligada": "${data.tv_ligada}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CONFIRMACAO_FINAL",
+      "title": "Confirmar dados",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Confirma o envio final dos dados?" },
+          {
+            "type": "Form",
+            "name": "confirmacao_final_form",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "confirmacao_final",
+                "label": "Confirmação",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Confirmar" },
+                  { "id": "nao", "title": "Não confirmar" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Enviar",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "cidade": "${data.cidade}",
+                    "estado": "${data.estado}",
+                    "numero": "${data.numero}",
+                    "bairro": "${data.bairro}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "tipo_documento": "${data.tipo_documento}",
+                    "foto_frente": "${data.foto_frente}",
+                    "foto_verso": "${data.foto_verso}",
+                    "selfie_com_doc": "${data.selfie_com_doc}",
+                    "comprovante": "${data.comprovante}",
+                    "fachada": "${data.fachada}",
+                    "tv_ligada": "${data.tv_ligada}",
+                    "confirmacao_final": "${form.confirmacao_final}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "FINISH",
+      "title": "Finalizado",
       "terminal": true,
       "success": true,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
+          { "type": "TextHeading", "text": "Resultado do processamento" },
+          { "type": "TextBody", "text": "Status: ${data.status}\nMotivo: ${data.reason}\nCódigo: ${data.reason_code}\nDetalhe: ${data.detail}" },
           {
-            "type": "TextHeading",
-            "text": "Recebemos seus dados com sucesso"
+            "type": "Footer",
+            "label": "Concluir",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {}
+            }
           }
         ]
       }
