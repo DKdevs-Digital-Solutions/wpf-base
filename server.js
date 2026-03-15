@@ -33,12 +33,12 @@ app.post("/whatsapp/flows", async (req, res) => {
       };
 
       const encryptedResponse = encryptResponse(
-        responsePayload,
-        aesKeyBuffer,
-        initialVectorBuffer
-      );
+  responsePayload,
+  aesKeyBuffer,
+  initialVectorBuffer
+);
 
-      return res.status(200).json(encryptedResponse);
+return res.status(200).type("text/plain").send(encryptedResponse);
     }
 
     if (action === "INIT") {
@@ -48,12 +48,12 @@ app.post("/whatsapp/flows", async (req, res) => {
       };
 
       const encryptedResponse = encryptResponse(
-        responsePayload,
-        aesKeyBuffer,
-        initialVectorBuffer
-      );
+  responsePayload,
+  aesKeyBuffer,
+  initialVectorBuffer
+);
 
-      return res.status(200).json(encryptedResponse);
+return res.status(200).type("text/plain").send(encryptedResponse);
     }
 
     if (action === "data_exchange") {
@@ -66,13 +66,13 @@ app.post("/whatsapp/flows", async (req, res) => {
         data: { received: true }
       };
 
-      const encryptedResponse = encryptResponse(
-        responsePayload,
-        aesKeyBuffer,
-        initialVectorBuffer
-      );
+     const encryptedResponse = encryptResponse(
+  responsePayload,
+  aesKeyBuffer,
+  initialVectorBuffer
+);
 
-      return res.status(200).json(encryptedResponse);
+return res.status(200).type("text/plain").send(encryptedResponse);
     }
 
     const fallbackPayload = {
@@ -81,12 +81,12 @@ app.post("/whatsapp/flows", async (req, res) => {
     };
 
     const encryptedResponse = encryptResponse(
-      fallbackPayload,
-      aesKeyBuffer,
-      initialVectorBuffer
-    );
+  responsePayload,
+  aesKeyBuffer,
+  initialVectorBuffer
+);
 
-    return res.status(200).send(encryptedResponse);
+return res.status(200).type("text/plain").send(encryptedResponse);
   } catch (err) {
     console.error("Erro endpoint flow:", err);
     res.status(500).send("internal_error");
