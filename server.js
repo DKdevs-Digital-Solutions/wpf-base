@@ -38,7 +38,7 @@ app.post("/whatsapp/flows", async (req, res) => {
         initialVectorBuffer
       );
 
-      return res.status(200).send(encryptedResponse);
+      return res.status(200).json(encryptedResponse);
     }
 
     if (action === "INIT") {
@@ -53,7 +53,7 @@ app.post("/whatsapp/flows", async (req, res) => {
         initialVectorBuffer
       );
 
-      return res.status(200).send(encryptedResponse);
+      return res.status(200).json(encryptedResponse);
     }
 
     if (action === "data_exchange") {
@@ -72,7 +72,7 @@ app.post("/whatsapp/flows", async (req, res) => {
         initialVectorBuffer
       );
 
-      return res.status(200).send(encryptedResponse);
+      return res.status(200).json(encryptedResponse);
     }
 
     const fallbackPayload = {
