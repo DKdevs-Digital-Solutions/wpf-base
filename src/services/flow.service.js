@@ -12,21 +12,31 @@ import {
 } from '../lib/validations.js';
 
 function protocolFromData(data = {}) {
-  return String(data.protocolo || data.protocol || data.protocolNumber || crypto.randomUUID()).trim();
+  return String(data.protocolo || data.protocol || data.protocolNumber || '').trim();
 }
 
 function screenResponse(screen, data = {}) {
   return { screen, data };
 }
 
-function finishResponse({ protocolo, status = 'failure', code = 'flow_finished', reason = '', finishMessage = '', jobId = '' }) {
+function finishResponse({
+  protocolo,
+  status = 'failure',
+  code = 'flow_finished',
+  reason = '',
+  finishMessage = '',
+  jobId = ''
+}) {
   return screenResponse('FINISH', {
     protocolo,
     status,
     reason_code: code,
     reason,
     job_id: jobId,
-    finish_message: finishMessage || reason || 'Fluxo finalizado.'
+    finish_message:
+      finishMessage ||
+      reason ||
+      'Para que suas informações sejam processadas, é necessário tocar em Concluir.'
   });
 }
 
@@ -46,7 +56,8 @@ export function queuedResponse({ protocolo, jobId }) {
     status: 'queued',
     code: 'queued_for_processing',
     reason: 'Dados recebidos e enviados para processamento.',
-    finishMessage: 'Recebemos seus dados com sucesso e o processamento foi iniciado.',
+    finishMessage:
+      'Se estiver tudo certo, toque em Concluir para que suas informações sejam processadas.',
     jobId: String(jobId || '')
   });
 }
@@ -85,6 +96,8 @@ function normalizeCommonState(data = {}) {
     uf: String(data.uf || data.estado || data.state || ''),
     ibge: String(data.ibge || ''),
     ponto_referencia: String(data.ponto_referencia || ''),
+    campo_endereco: String(data.campo_endereco || '').toLowerCase(),
+    valor_campo_endereco: String(data.valor_campo_endereco || ''),
     tipo_documento: String(data.tipo_documento || '').toUpperCase(),
     doc_frente: normalizeMediaArray(data.doc_frente || data.foto_frente),
     doc_verso: normalizeMediaArray(data.doc_verso || data.foto_verso),
@@ -95,27 +108,28 @@ function normalizeCommonState(data = {}) {
   };
 }
 
-function buildResumo(state) {
-  return [
-    `Nome: ${state.nome || '-'}`,
-    `CPF: ${state.cpf || '-'}`,
-    `Telefone principal: ${state.telefone_principal || '-'}`,
-    `Telefone recado: ${state.telefone_recado || '-'}`,
-    `Contato recado: ${state.nome_contato_recado || '-'}`,
-    `CEP: ${state.cep || '-'}`,
-    `Logradouro: ${state.logradouro || '-'}`,
-    `Número: ${state.numero || '-'}`,
-    `Bairro: ${state.bairro || '-'}`,
-    `Cidade: ${state.cidade || '-'}`,
-    `UF: ${state.uf || '-'}`,
-    `Complemento: ${state.complemento || '-'}`,
-    `Ponto de referência: ${state.ponto_referencia || '-'}`,
-    `Documento: ${state.tipo_documento || '-'}`
-  ].join('\n');
+function initialAddressAvailable(state) {
+  return Boolean(state.cep && state.logradouro && state.bairro && state.cidade && state.uf);
 }
 
-function initialAddressAvailable(state) {
-  return Boolean(state.cep && state.logradouro && state.cidade && state.uf);
+function replaceAddressField(state, field, value) {
+  const nextValue = requiredText(value, 120);
+  if (!nextValue) {
+    return null;
+  }
+
+  switch (field) {
+    case 'logradouro':
+      return { ...state, logradouro: nextValue };
+    case 'bairro':
+      return { ...state, bairro: nextValue };
+    case 'cidade':
+      return { ...state, cidade: nextValue };
+    case 'uf':
+      return { ...state, uf: nextValue.toUpperCase() };
+    default:
+      return null;
+  }
 }
 
 export async function handleFlowStep({ screen, data, enqueueJob }) {
@@ -134,7 +148,8 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
             protocolo: state.protocolo,
             code: 'cpf_invalido_3_tentativas',
             reason: 'CPF inválido após 3 tentativas.',
-            finishMessage: 'Não foi possível continuar porque o CPF foi informado incorretamente 3 vezes.'
+            finishMessage:
+              'Não foi possível continuar porque o CPF foi informado incorretamente 3 vezes.'
           });
         }
 
@@ -149,72 +164,212 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       }
 
       const eligibility = await validateCpfEligibility(state.cpf, state.protocolo);
+
       if (!eligibility.eligible) {
-        return failureResponse({ protocolo: state.protocolo, code: 'nao_elegivel', reason: 'CPF não elegível para continuar.' });
+        return failureResponse({
+          protocolo: eligibility.protocolo || state.protocolo,
+          code: 'nao_elegivel',
+          reason: 'CPF não elegível para continuar.'
+        });
       }
+
       if (!eligibility.extraPhaseEligible) {
-        return failureResponse({ protocolo: state.protocolo, code: 'sem_fase_extra', reason: 'Não foi identificada fase extra para este cadastro.' });
+        return failureResponse({
+          protocolo: eligibility.protocolo || state.protocolo,
+          code: 'sem_fase_extra',
+          reason: 'Não foi identificada fase extra para este cadastro.'
+        });
       }
+
       if (eligibility.hasInstallation) {
         return failureResponse({
-          protocolo: state.protocolo,
+          protocolo: eligibility.protocolo || state.protocolo,
           code: 'ja_possui_instalacao',
-          reason: `Já existe instalação vinculada a este cadastro${eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''}.`
+          reason: `Já existe instalação vinculada a este cadastro${
+            eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''
+          }.`
         });
       }
+
       if (eligibility.hasScheduleForCpf) {
         return failureResponse({
-          protocolo: state.protocolo,
+          protocolo: eligibility.protocolo || state.protocolo,
           code: 'ja_possui_agendamento_cpf',
-          reason: `Já existe agendamento para este CPF${eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''}.`
+          reason: `Já existe agendamento para este CPF${
+            eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''
+          }.`
         });
       }
+
       if (eligibility.hasScheduleForFamilyCode) {
         return failureResponse({
-          protocolo: state.protocolo,
+          protocolo: eligibility.protocolo || state.protocolo,
           code: 'ja_possui_agendamento_codigo_familia',
-          reason: `Já existe agendamento para este código família${eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''}.`
+          reason: `Já existe agendamento para este código família${
+            eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''
+          }.`
         });
       }
 
       return successNext('CONTATOS', {
         ...state,
+        protocolo: String(eligibility.protocolo || state.protocolo || '').trim(),
         nome: eligibility.nome || state.nome,
         family_code: eligibility.familyCode || state.family_code,
+        cep: normalizeCep(eligibility.cep || state.cep),
+        logradouro: String(eligibility.logradouro || eligibility.street || state.logradouro || ''),
+        bairro: String(eligibility.bairro || eligibility.neighborhood || state.bairro || ''),
+        cidade: String(eligibility.cidade || eligibility.city || state.cidade || ''),
+        uf: String(eligibility.uf || eligibility.state || state.uf || ''),
+        ibge: String(eligibility.ibge || state.ibge || ''),
+        telefone_principal: normalizePhone(
+          state.telefone_principal ||
+            eligibility.telefone_principal ||
+            eligibility.telefone ||
+            eligibility.phone
+        ),
         cpf_attempts: 0,
         cpf_feedback: ''
       });
     }
 
     case 'CONTATOS': {
-      if (!isValidPhone(state.telefone_principal)) {
-        return failureResponse({ protocolo: state.protocolo, code: 'telefone_principal_invalido', reason: 'Telefone principal inválido.' });
-      }
-      if (!isValidPhone(state.telefone_recado)) {
-        return failureResponse({ protocolo: state.protocolo, code: 'telefone_recado_invalido', reason: 'Telefone para recado inválido.' });
-      }
-      const nomeContatoRecado = requiredText(data.nome_contato_recado, 120);
-      if (!nomeContatoRecado) {
-        return failureResponse({ protocolo: state.protocolo, code: 'nome_contato_recado_obrigatorio', reason: 'Nome do contato de recado é obrigatório.' });
+      const telefonePrincipal = state.telefone_principal;
+
+      if (!isValidPhone(telefonePrincipal)) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'telefone_principal_invalido',
+          reason: 'Telefone principal inválido.'
+        });
       }
 
-      return successNext(initialAddressAvailable(state) ? 'CONFIRMA_ENDERECO_CEP_ONE' : 'CEP_REINPUT', {
+      const telefoneRecado = state.telefone_recado;
+      if (telefoneRecado && !isValidPhone(telefoneRecado)) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'telefone_recado_invalido',
+          reason: 'Telefone para recado inválido.'
+        });
+      }
+
+      return successNext(initialAddressAvailable(state) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', {
         ...state,
-        nome_contato_recado: nomeContatoRecado
+        telefone_principal: telefonePrincipal
+      });
+    }
+
+    case 'CONFIRMA_ENDERECO_ONE': {
+      const decisao = String(data.decisao_endereco || '').toLowerCase();
+
+      if (decisao === 'confirmar') {
+        return successNext('ENDERECO_COMPLETO', state);
+      }
+
+      if (decisao === 'corrigir') {
+        return successNext('ESCOLHER_CAMPO_ENDERECO', state);
+      }
+
+      return failureResponse({
+        protocolo: state.protocolo,
+        code: 'confirmacao_endereco_invalida',
+        reason: 'Escolha uma opção para continuar.'
+      });
+    }
+
+    case 'ESCOLHER_CAMPO_ENDERECO': {
+      const campo = String(data.campo_endereco || '').toLowerCase();
+      const camposPermitidos = ['cep', 'logradouro', 'bairro', 'cidade', 'uf'];
+
+      if (!camposPermitidos.includes(campo)) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'campo_endereco_invalido',
+          reason: 'Selecione qual campo do endereço deseja alterar.'
+        });
+      }
+
+      if (campo === 'cep') {
+        return successNext('CEP_REINPUT', { ...state, campo_endereco: campo });
+      }
+
+      return successNext('EDITAR_CAMPO_ENDERECO', { ...state, campo_endereco: campo });
+    }
+
+    case 'EDITAR_CAMPO_ENDERECO': {
+      const campo = state.campo_endereco;
+      const valor = requiredText(data.valor_campo_endereco, 120);
+
+      if (!campo || !['logradouro', 'bairro', 'cidade', 'uf'].includes(campo)) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'campo_endereco_invalido',
+          reason: 'Campo do endereço inválido para edição.'
+        });
+      }
+
+      if (!valor) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'valor_campo_endereco_obrigatorio',
+          reason: 'Informe o novo valor do campo selecionado.'
+        });
+      }
+
+      const updated = replaceAddressField(state, campo, valor);
+      if (!updated) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'falha_edicao_endereco',
+          reason: 'Não foi possível atualizar o campo do endereço.'
+        });
+      }
+
+      return successNext('CONFIRMA_ENDERECO_AJUSTADO', updated);
+    }
+
+    case 'CONFIRMA_ENDERECO_AJUSTADO': {
+      const decisao = String(data.decisao_endereco || '').toLowerCase();
+
+      if (decisao === 'confirmar') {
+        return successNext('ENDERECO_COMPLETO', state);
+      }
+
+      if (decisao === 'encerrar') {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'ajuste_endereco_externo',
+          reason: 'Endereço precisa de ajuste externo.'
+        });
+      }
+
+      return failureResponse({
+        protocolo: state.protocolo,
+        code: 'confirmacao_endereco_invalida',
+        reason: 'Escolha uma opção para continuar.'
       });
     }
 
     case 'CEP_REINPUT': {
       if (!isValidCepFormat(state.cep)) {
-        return failureResponse({ protocolo: state.protocolo, code: 'cep_invalido', reason: 'CEP inválido. Informe os 8 números do CEP.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'cep_invalido',
+          reason: 'CEP inválido. Informe os 8 números do CEP.'
+        });
       }
 
       const cepValidation = await validateCepEligibility(state.cep, state.protocolo);
+
       if (!cepValidation.ok) {
-        return failureResponse({ protocolo: state.protocolo, code: cepValidation.code, reason: cepValidation.reason });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: cepValidation.code,
+          reason: cepValidation.reason
+        });
       }
 
-      return successNext('CONFIRMA_ENDERECO_CEP_TWO', {
+      return successNext('CONFIRMA_ENDERECO_TWO', {
         ...state,
         cep: cepValidation.address.cep,
         logradouro: cepValidation.address.street,
@@ -225,131 +380,171 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       });
     }
 
-    case 'CONFIRMA_ENDERECO_CEP_ONE': {
+    case 'CONFIRMA_ENDERECO_TWO': {
       const decisao = String(data.decisao_endereco || '').toLowerCase();
-      if (decisao === 'confirmar') {
-        return successNext('COMPLEMENTA_ENDERECO', state);
-      }
-      if (decisao === 'corrigir') {
-        return successNext('CEP_REINPUT', state);
-      }
-      return failureResponse({ protocolo: state.protocolo, code: 'confirmacao_endereco_invalida', reason: 'Escolha uma opção para continuar.' });
-    }
 
-    case 'CONFIRMA_ENDERECO_CEP_TWO': {
-      const decisao = String(data.decisao_endereco || '').toLowerCase();
       if (decisao === 'confirmar') {
-        return successNext('COMPLEMENTA_ENDERECO', state);
+        return successNext('ENDERECO_COMPLETO', state);
       }
+
       if (decisao === 'encerrar') {
-        return failureResponse({ protocolo: state.protocolo, code: 'ajuste_endereco_externo', reason: 'Endereço precisa de ajuste externo.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'ajuste_endereco_externo',
+          reason: 'Endereço precisa de ajuste externo.'
+        });
       }
-      return failureResponse({ protocolo: state.protocolo, code: 'confirmacao_endereco_invalida', reason: 'Escolha uma opção para continuar.' });
+
+      return failureResponse({
+        protocolo: state.protocolo,
+        code: 'confirmacao_endereco_invalida',
+        reason: 'Escolha uma opção para continuar.'
+      });
     }
 
-    case 'COMPLEMENTA_ENDERECO': {
+    case 'ENDERECO_COMPLETO': {
       const numero = requiredText(data.numero, 20);
-      const bairro = requiredText(data.bairro || state.bairro, 100);
       const complemento = requiredText(data.complemento, 120);
       const pontoReferencia = requiredText(data.ponto_referencia, 180);
+
       if (!numero) {
-        return failureResponse({ protocolo: state.protocolo, code: 'numero_obrigatorio', reason: 'Número da residência é obrigatório.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'numero_obrigatorio',
+          reason: 'Número da residência é obrigatório.'
+        });
       }
-      if (!bairro) {
-        return failureResponse({ protocolo: state.protocolo, code: 'bairro_obrigatorio', reason: 'Bairro é obrigatório.' });
-      }
+
       if (!pontoReferencia) {
-        return failureResponse({ protocolo: state.protocolo, code: 'ponto_referencia_obrigatorio', reason: 'Ponto de referência é obrigatório.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'ponto_referencia_obrigatorio',
+          reason: 'Ponto de referência é obrigatório.'
+        });
       }
-      return successNext('TIPO_DOCUMENTO', { ...state, numero, bairro, complemento, ponto_referencia: pontoReferencia });
+
+      return successNext('TIPO_DOCUMENTO', {
+        ...state,
+        numero,
+        complemento,
+        ponto_referencia: pontoReferencia
+      });
     }
 
     case 'TIPO_DOCUMENTO': {
       const tipo = String(data.tipo_documento || '').toUpperCase();
+
       if (!['RG', 'CNH'].includes(tipo)) {
-        return failureResponse({ protocolo: state.protocolo, code: 'documento_nao_informado', reason: 'É necessário selecionar RG ou CNH para continuar.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'documento_nao_informado',
+          reason: 'É necessário selecionar RG ou CNH para continuar.'
+        });
       }
+
       return successNext('DOC_FRENTE', { ...state, tipo_documento: tipo });
     }
 
     case 'DOC_FRENTE': {
       const docFrente = normalizeMediaArray(data.doc_frente);
       if (!docFrente.length) {
-        return failureResponse({ protocolo: state.protocolo, code: 'doc_frente_obrigatorio', reason: 'A foto da frente do documento é obrigatória.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'doc_frente_obrigatorio',
+          reason: 'A foto da frente do documento é obrigatória.'
+        });
       }
-      return successNext(state.tipo_documento === 'CNH' ? 'SELFIE_COM_DOC' : 'DOC_VERSO', { ...state, doc_frente: docFrente });
+
+      return successNext(state.tipo_documento === 'CNH' ? 'SELFIE_COM_DOC' : 'DOC_VERSO', {
+        ...state,
+        doc_frente: docFrente
+      });
     }
 
     case 'DOC_VERSO': {
       const docVerso = normalizeMediaArray(data.doc_verso);
       if (!docVerso.length) {
-        return failureResponse({ protocolo: state.protocolo, code: 'doc_verso_obrigatorio', reason: 'A foto do verso do documento é obrigatória.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'doc_verso_obrigatorio',
+          reason: 'A foto do verso do documento é obrigatória.'
+        });
       }
+
       return successNext('SELFIE_COM_DOC', { ...state, doc_verso: docVerso });
     }
 
     case 'SELFIE_COM_DOC': {
       const selfie = normalizeMediaArray(data.selfie_com_doc);
       if (!selfie.length) {
-        return failureResponse({ protocolo: state.protocolo, code: 'selfie_com_doc_obrigatoria', reason: 'A selfie com documento é obrigatória.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'selfie_com_doc_obrigatoria',
+          reason: 'A selfie com documento é obrigatória.'
+        });
       }
+
       return successNext('COMPROVANTE', { ...state, selfie_com_doc: selfie });
     }
 
     case 'COMPROVANTE': {
       const comprovante = normalizeMediaArray(data.comprovante_residencia);
       if (!comprovante.length) {
-        return failureResponse({ protocolo: state.protocolo, code: 'comprovante_obrigatorio', reason: 'O comprovante de residência é obrigatório.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'comprovante_obrigatorio',
+          reason: 'O comprovante de residência é obrigatório.'
+        });
       }
+
       return successNext('FACHADA', { ...state, comprovante_residencia: comprovante });
     }
 
     case 'FACHADA': {
       const fachada = normalizeMediaArray(data.fachada);
       if (!fachada.length) {
-        return failureResponse({ protocolo: state.protocolo, code: 'fachada_obrigatoria', reason: 'A foto da fachada é obrigatória.' });
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'fachada_obrigatoria',
+          reason: 'A foto da fachada é obrigatória.'
+        });
       }
+
       return successNext('TV_LIGADA', { ...state, fachada });
     }
 
     case 'TV_LIGADA': {
       const tvLigada = normalizeMediaArray(data.tv_ligada);
       if (!tvLigada.length) {
-        return failureResponse({ protocolo: state.protocolo, code: 'tv_ligada_obrigatoria', reason: 'A foto da TV ligada é obrigatória.' });
-      }
-      return successNext('RESUMO_FINAL', {
-        ...state,
-        tv_ligada: tvLigada,
-        resumo_texto: buildResumo({ ...state, tv_ligada: tvLigada })
-      });
-    }
-
-    case 'RESUMO_FINAL': {
-      const decisao = String(data.decisao_resumo || '').toLowerCase();
-      if (decisao === 'confirmar') {
-        return successNext('CONFIRMACAO_FINAL', state);
-      }
-      if (decisao === 'encerrar') {
         return failureResponse({
           protocolo: state.protocolo,
-          code: 'ajuste_manual_solicitado',
-          reason: 'Usuário solicitou ajuste externo antes do envio final.'
+          code: 'tv_ligada_obrigatoria',
+          reason: 'A foto da TV ligada é obrigatória.'
         });
       }
-      return failureResponse({ protocolo: state.protocolo, code: 'resumo_sem_decisao', reason: 'Escolha uma opção para continuar.' });
-    }
 
-    case 'CONFIRMACAO_FINAL': {
+      const finalState = {
+        ...state,
+        tv_ligada: tvLigada
+      };
+
       const job = await enqueueJob({
-        protocolo: state.protocolo,
+        protocolo: finalState.protocolo || crypto.randomUUID(),
         submittedAt: new Date().toISOString(),
-        data: state
+        data: finalState
       });
 
-      return queuedResponse({ protocolo: state.protocolo, jobId: job.id });
+      return queuedResponse({
+        protocolo: finalState.protocolo,
+        jobId: job.id
+      });
     }
 
     default:
-      return failureResponse({ protocolo: state.protocolo, code: 'screen_not_supported', reason: `Screen ${screen} não suportada no backend.` });
+      return failureResponse({
+        protocolo: state.protocolo,
+        code: 'screen_not_supported',
+        reason: `Screen ${screen} não suportada no backend.`
+      });
   }
 }
