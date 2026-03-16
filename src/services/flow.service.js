@@ -234,28 +234,29 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
     }
 
     case 'CONTATOS': {
-      const telefonePrincipal = state.telefone_principal;
+      const telefonePrincipal = normalizePhone(state.telefone_principal);
+      const telefoneRecado = normalizePhone(state.telefone_recado);
 
       if (!isValidPhone(telefonePrincipal)) {
         return failureResponse({
           protocolo: state.protocolo,
           code: 'telefone_principal_invalido',
-          reason: 'Telefone principal inválido.'
+          reason: `Telefone principal inválido: ${state.telefone_principal}`
         });
       }
 
-      const telefoneRecado = state.telefone_recado;
       if (telefoneRecado && !isValidPhone(telefoneRecado)) {
         return failureResponse({
           protocolo: state.protocolo,
           code: 'telefone_recado_invalido',
-          reason: 'Telefone para recado inválido.'
+          reason: `Telefone para recado inválido: ${state.telefone_recado}`
         });
       }
 
       return successNext(initialAddressAvailable(state) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', {
         ...state,
-        telefone_principal: telefonePrincipal
+        telefone_principal: telefonePrincipal,
+        telefone_recado: telefoneRecado
       });
     }
 
