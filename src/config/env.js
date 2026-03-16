@@ -17,6 +17,13 @@ export function getEnv() {
     JOB_MAX_ATTEMPTS: getEnvNumber('JOB_MAX_ATTEMPTS', 5),
     JOB_BACKOFF_DELAY_MS: getEnvNumber('JOB_BACKOFF_DELAY_MS', 5000),
     JOB_BACKOFF_TYPE: process.env.JOB_BACKOFF_TYPE || 'exponential',
-    BULLMQ_QUEUE_NAME: process.env.BULLMQ_QUEUE_NAME || 'whatsapp-flows'
+    BULLMQ_QUEUE_NAME: process.env.BULLMQ_QUEUE_NAME || 'whatsapp-flows',
+    AUTH_URL: process.env.AUTH_URL || '',
+    AUTH_CLIENT_ID: process.env.AUTH_CLIENT_ID || '',
+    AUTH_CLIENT_SECRET: process.env.AUTH_CLIENT_SECRET || '',
+    AUTH_USERNAME: process.env.AUTH_USERNAME || '',
+    AUTH_PASSWORD: process.env.AUTH_PASSWORD || '',
+    AUTH_REFRESH_BEFORE_MS: getEnvNumber('AUTH_REFRESH_BEFORE_MS', 300000),
+    API_TIMEOUT_MS: getEnvNumber('API_TIMEOUT_MS', 15000)
   };
 }

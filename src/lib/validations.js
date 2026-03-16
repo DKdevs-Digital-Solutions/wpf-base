@@ -1,7 +1,7 @@
-import axios from "axios";
+import { apiGet, envUrl } from './http.js';
 
-function digits(value = "") {
-  return String(value || "").replace(/\D+/g, "");
+function digits(value = '') {
+  return String(value || '').replace(/\D+/g, '');
 }
 
 export function normalizeCpf(value) {
@@ -43,140 +43,180 @@ export function isValidCepFormat(value) {
 }
 
 export function requiredText(value, maxLength = 120) {
-  return String(value || "").trim().slice(0, maxLength);
-}
-
-async function safeGet(url, config = {}) {
-  const response = await axios.get(url, { timeout: 15000, ...config });
-  return response.data;
-}
-
-function envUrl(name) {
-  const value = process.env[name];
-  return value ? value.replace(/\/+$/g, "") : "";
+  return String(value || '').trim().slice(0, maxLength);
 }
 
 export async function lookupAddressByCep(cep) {
   const cleanCep = normalizeCep(cep);
-  const baseUrl = envUrl("CEP_API_URL");
+  const baseUrl = envUrl('CEP_API_URL');
 
   if (baseUrl) {
-    const data = await safeGet(`${baseUrl}/${cleanCep}`);
+    const data = await apiGet(`${baseUrl}/${cleanCep}`, { authenticated: false });
     return {
       cep: cleanCep,
-      street: data.logradouro || data.street || "",
-      neighborhood: data.bairro || data.neighborhood || "",
-      city: data.localidade || data.city || "",
-      state: data.uf || data.state || "",
-      ibge: data.ibge || data.city_code || ""
+      street: data.logradouro || data.street || '',
+      neighborhood: data.bairro || data.neighborhood || '',
+      city: data.localidade || data.city || '',
+      state: data.uf || data.state || '',
+      ibge: data.ibge || data.city_code || ''
     };
   }
 
-  const data = await safeGet(`https://viacep.com.br/ws/${cleanCep}/json/`);
-  if (data.erro) {
-    return null;
-  }
+  const data = await apiGet(`https://viacep.com.br/ws/${cleanCep}/json/`, { authenticated: false });
+  if (data.erro) return null;
 
   return {
     cep: cleanCep,
-    street: data.logradouro || "",
-    neighborhood: data.bairro || "",
-    city: data.localidade || "",
-    state: data.uf || "",
-    ibge: data.ibge || ""
+    street: data.logradouro || '',
+    neighborhood: data.bairro || '',
+    city: data.localidade || '',
+    state: data.uf || '',
+    ibge: data.ibge || ''
   };
 }
 
-async function getOptional(url, fallbackValue) {
-  if (!url) return fallbackValue;
+async function getOptional(executor, fallbackValue) {
   try {
-    return await safeGet(url);
+    return await executor();
   } catch {
     return fallbackValue;
   }
 }
 
-export async function validateCpfEligibility(cpf) {
-  const cleanCpf = normalizeCpf(cpf);
-  const baseUrl = envUrl("ELIGIBILITY_API_URL");
-  const extraPhaseUrl = envUrl("EXTRA_PHASE_FAMILY_API_URL");
-  const familyVerificationUrl = envUrl("FAMILY_CODE_VERIFICATION_API_URL");
+function boolFromResponse(data, keys = [], fallback = true) {
+  for (const key of keys) {
+    if (typeof data?.[key] === 'boolean') return data[key];
+  }
+  return fallback;
+}
 
-  const eligibility = await getOptional(baseUrl ? `${baseUrl}/${cleanCpf}` : "", {
-    eligible: true,
-    nome: "",
-    familyCode: "",
+export async function validateCpfEligibility(cpf, protocolo = '') {
+  const cleanCpf = normalizeCpf(cpf);
+  const familyVerificationUrl = envUrl('FAMILY_CODE_VERIFICATION_API_URL');
+  const cadastroUnicoUrl = envUrl('CADASTRO_UNICO_API_URL');
+  const extraPhaseFamilyUrl = envUrl('EXTRA_PHASE_FAMILY_API_URL');
+
+  const cadastroUnico = await getOptional(async () => {
+    if (!cadastroUnicoUrl) {
+      return { eligible: true, nome: '', familyCode: '', hasInstallation: false, hasScheduleForCpf: false };
+    }
+
+    return apiGet(cadastroUnicoUrl, {
+      params: {
+        channel: process.env.CADUNICO_CHANNEL || 'WHATSAPP',
+        classification: process.env.CADUNICO_CLASSIFICATION || 'AGENDAMENTO',
+        document: cleanCpf,
+        documentType: 'CPF',
+        whoContacted: process.env.CADUNICO_WHO_CONTACTED || 'titular'
+      }
+    });
+  }, { eligible: true, nome: '', familyCode: '', hasInstallation: false, hasScheduleForCpf: false });
+
+  const familyCode = String(
+    cadastroUnico.familyCode ||
+    cadastroUnico.family_code ||
+    cadastroUnico.codigoFamilia ||
+    cadastroUnico.familyCodeNumber ||
+    ''
+  );
+
+  const familyVerification = await getOptional(async () => {
+    if (!familyVerificationUrl || !cleanCpf) {
+      return {
+        exists: true,
+        hasInstallation: false,
+        hasScheduleForCpf: false,
+        hasScheduleForFamilyCode: false,
+        protocolo: ''
+      };
+    }
+
+    return apiGet(familyVerificationUrl, {
+      params: {
+        document: cleanCpf,
+        documentType: 'CPF',
+        protocol: protocolo
+      }
+    });
+  }, {
+    exists: true,
     hasInstallation: false,
     hasScheduleForCpf: false,
-    hasScheduleForFamilyCode: false
+    hasScheduleForFamilyCode: false,
+    protocolo: ''
   });
 
-  const familyCode = eligibility.familyCode || eligibility.family_code || "";
+  const extraPhase = await getOptional(async () => {
+    if (!extraPhaseFamilyUrl || !familyCode) return { eligible: true };
 
-  const extraPhase = await getOptional(
-    extraPhaseUrl && familyCode ? `${extraPhaseUrl}/${familyCode}` : "",
-    { eligible: true }
-  );
-
-  const familyVerification = await getOptional(
-    familyVerificationUrl && familyCode ? `${familyVerificationUrl}/${familyCode}` : "",
-    {
-      hasInstallation: eligibility.hasInstallation || false,
-      hasScheduleForCpf: eligibility.hasScheduleForCpf || false,
-      hasScheduleForFamilyCode: eligibility.hasScheduleForFamilyCode || false,
-      protocolo: eligibility.protocolo || ""
-    }
-  );
+    return apiGet(extraPhaseFamilyUrl, {
+      params: {
+        familyCode,
+        protocol: protocolo
+      }
+    });
+  }, { eligible: true });
 
   return {
-    eligible: eligibility.eligible !== false,
-    nome: eligibility.nome || eligibility.name || "",
+    eligible: boolFromResponse(cadastroUnico, ['eligible', 'exists', 'found'], true),
+    nome: cadastroUnico.nome || cadastroUnico.name || cadastroUnico.customerName || '',
     familyCode,
-    protocoloExistente: familyVerification.protocolo || eligibility.protocolo || "",
-    extraPhaseEligible: extraPhase.eligible !== false,
-    hasInstallation: Boolean(familyVerification.hasInstallation),
-    hasScheduleForCpf: Boolean(familyVerification.hasScheduleForCpf),
-    hasScheduleForFamilyCode: Boolean(familyVerification.hasScheduleForFamilyCode)
+    protocoloExistente: familyVerification.protocolo || familyVerification.protocol || cadastroUnico.protocolo || '',
+    extraPhaseEligible: boolFromResponse(extraPhase, ['eligible', 'available', 'success'], true),
+    hasInstallation: Boolean(familyVerification.hasInstallation || familyVerification.serviceOrderOpen || familyVerification.existsOpenOrder),
+    hasScheduleForCpf: Boolean(familyVerification.hasScheduleForCpf || familyVerification.scheduleOpenForCpf),
+    hasScheduleForFamilyCode: Boolean(familyVerification.hasScheduleForFamilyCode || familyVerification.scheduleOpenForFamilyCode)
   };
 }
 
-export async function validateCepEligibility(cep) {
+export async function validateCepEligibility(cep, protocolo = '') {
   const address = await lookupAddressByCep(cep);
   if (!address) {
-    return {
-      ok: false,
-      code: "cep_not_found",
-      reason: "CEP não encontrado"
-    };
+    return { ok: false, code: 'cep_not_found', reason: 'CEP não encontrado' };
   }
 
-  const cityAvailabilityUrl = envUrl("CITY_AVAILABILITY_API_URL");
-  const extraPhaseIbgeUrl = envUrl("EXTRA_PHASE_IBGE_API_URL");
+  const cityAvailabilityUrl = envUrl('CITY_AVAILABILITY_API_URL');
+  const extraPhaseIbgeUrl = envUrl('EXTRA_PHASE_IBGE_API_URL');
 
-  const cityAvailability = await getOptional(
-    cityAvailabilityUrl && address.ibge ? `${cityAvailabilityUrl}/${address.ibge}` : "",
-    { available: true, stage: "vigente", reason: "" }
-  );
+  const cityAvailability = await getOptional(async () => {
+    if (!cityAvailabilityUrl || !address.ibge) {
+      return { available: true, stage: 'vigente', reason: '' };
+    }
 
-  const extraPhase = await getOptional(
-    extraPhaseIbgeUrl && address.ibge ? `${extraPhaseIbgeUrl}/${address.ibge}` : "",
-    { eligible: true }
-  );
+    return apiGet(cityAvailabilityUrl, {
+      params: {
+        postalCode: address.ibge,
+        protocol: protocolo,
+        'extra-phase': true
+      }
+    });
+  }, { available: true, stage: 'vigente', reason: '' });
 
-  if (cityAvailability.available === false) {
+  const extraPhase = await getOptional(async () => {
+    if (!extraPhaseIbgeUrl || !address.ibge) return { eligible: true };
+
+    return apiGet(extraPhaseIbgeUrl, {
+      params: {
+        ibge: address.ibge,
+        protocol: protocolo
+      }
+    });
+  }, { eligible: true });
+
+  if (cityAvailability.available === false || cityAvailability.status === false) {
     return {
       ok: false,
-      code: cityAvailability.code || "city_unavailable",
-      reason: cityAvailability.reason || "Cidade não atendida",
+      code: cityAvailability.code || 'city_unavailable',
+      reason: cityAvailability.reason || 'Cidade não atendida',
       address
     };
   }
 
-  if (extraPhase.eligible === false) {
+  if (extraPhase.eligible === false || extraPhase.available === false) {
     return {
       ok: false,
-      code: extraPhase.code || "no_extra_phase",
-      reason: extraPhase.reason || "Sem fase extra para este CEP",
+      code: extraPhase.code || 'no_extra_phase',
+      reason: extraPhase.reason || 'Sem fase extra para este CEP',
       address
     };
   }
@@ -184,6 +224,6 @@ export async function validateCepEligibility(cep) {
   return {
     ok: true,
     address,
-    stage: cityAvailability.stage || "vigente"
+    stage: cityAvailability.stage || cityAvailability.phase || 'vigente'
   };
 }

@@ -6,9 +6,7 @@ export function loadPrivateKey(env = process.env) {
   }
 
   if (env.PRIVATE_KEY) {
-    return env.PRIVATE_KEY
-      .replace(/\\n/g, '\n')
-      .trim();
+    return env.PRIVATE_KEY.replace(/\\n/g, '\n').trim();
   }
 
   return '';
@@ -20,14 +18,9 @@ export function validatePrivateKey(privateKey) {
   }
 
   try {
-    crypto.createPrivateKey({
-      key: privateKey,
-      format: 'pem',
-    });
-  } catch (error) {
-    throw new Error(
-      'Chave privada inválida. Verifique se a PEM está completa, com BEGIN/END corretos, e se os \\n foram convertidos corretamente.'
-    );
+    crypto.createPrivateKey({ key: privateKey, format: 'pem' });
+  } catch {
+    throw new Error('Chave privada inválida. Verifique se a PEM está completa e se os \\n foram convertidos corretamente.');
   }
 
   return privateKey;

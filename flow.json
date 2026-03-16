@@ -2,24 +2,68 @@
   "version": "7.1",
   "data_api_version": "3.0",
   "routing_model": {
-    "CPF_INPUT": ["CPF_INPUT", "TELEFONE_PRINCIPAL", "FINISH"],
-    "TELEFONE_PRINCIPAL": ["TELEFONE_RECADO", "FINISH"],
-    "TELEFONE_RECADO": ["CEP_INPUT", "FINISH"],
-    "CEP_INPUT": ["CONFIRMA_ENDERECO_CEP_1", "FINISH"],
-    "CONFIRMA_ENDERECO_CEP_1": ["COMPLEMENTA_ENDERECO", "CEP_REINPUT", "FINISH"],
-    "CEP_REINPUT": ["CONFIRMA_ENDERECO_CEP_2", "FINISH"],
-    "CONFIRMA_ENDERECO_CEP_2": ["COMPLEMENTA_ENDERECO", "FINISH"],
-    "COMPLEMENTA_ENDERECO": ["PONTO_REFERENCIA", "FINISH"],
-    "PONTO_REFERENCIA": ["TIPO_DOCUMENTO", "FINISH"],
-    "TIPO_DOCUMENTO": ["DOC_FRENTE", "FINISH"],
-    "DOC_FRENTE": ["DOC_VERSO", "SELFIE_COM_DOC", "FINISH"],
-    "DOC_VERSO": ["SELFIE_COM_DOC", "FINISH"],
-    "SELFIE_COM_DOC": ["COMPROVANTE", "FINISH"],
-    "COMPROVANTE": ["FACHADA", "FINISH"],
-    "FACHADA": ["TV_LIGADA", "FINISH"],
-    "TV_LIGADA": ["RESUMO_FINAL", "FINISH"],
-    "RESUMO_FINAL": ["CONFIRMACAO_FINAL", "FINISH"],
-    "CONFIRMACAO_FINAL": ["FINISH"]
+    "CPF_INPUT": [
+      "CPF_INPUT",
+      "CONTATOS",
+      "FINISH"
+    ],
+    "CONTATOS": [
+      "CONFIRMA_ENDERECO_ONE",
+      "FINISH"
+    ],
+    "CONFIRMA_ENDERECO_ONE": [
+      "ENDERECO_COMPLETO",
+      "CEP_REINPUT",
+      "FINISH"
+    ],
+    "CEP_REINPUT": [
+      "CONFIRMA_ENDERECO_TWO",
+      "FINISH"
+    ],
+    "CONFIRMA_ENDERECO_TWO": [
+      "ENDERECO_COMPLETO",
+      "FINISH"
+    ],
+    "ENDERECO_COMPLETO": [
+      "TIPO_DOCUMENTO",
+      "FINISH"
+    ],
+    "TIPO_DOCUMENTO": [
+      "DOC_FRENTE",
+      "FINISH"
+    ],
+    "DOC_FRENTE": [
+      "DOC_VERSO",
+      "SELFIE_COM_DOC",
+      "FINISH"
+    ],
+    "DOC_VERSO": [
+      "SELFIE_COM_DOC",
+      "FINISH"
+    ],
+    "SELFIE_COM_DOC": [
+      "COMPROVANTE",
+      "FINISH"
+    ],
+    "COMPROVANTE": [
+      "FACHADA",
+      "FINISH"
+    ],
+    "FACHADA": [
+      "TV_LIGADA",
+      "FINISH"
+    ],
+    "TV_LIGADA": [
+      "RESUMO_FINAL",
+      "FINISH"
+    ],
+    "RESUMO_FINAL": [
+      "CONFIRMACAO_FINAL",
+      "FINISH"
+    ],
+    "CONFIRMACAO_FINAL": [
+      "FINISH"
+    ]
   },
   "screens": [
     {
@@ -55,10 +99,10 @@
                 "on-click-action": {
                   "name": "data_exchange",
                   "payload": {
-                    "protocolo": "${data.protocolo}",
                     "cpf": "${form.cpf}",
                     "cpf_attempts": "${data.cpf_attempts}",
-                    "cpf_feedback": "${data.cpf_feedback}"
+                    "cpf_feedback": "${data.cpf_feedback}",
+                    "telefone_principal": "${data.telefone_principal}"
                   }
                 }
               }
@@ -68,18 +112,43 @@
       }
     },
     {
-      "id": "TELEFONE_PRINCIPAL",
-      "title": "Telefone principal",
+      "id": "CONTATOS",
+      "title": "Dados de contato",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Informe o telefone principal para contato." },
+          {
+            "type": "TextBody",
+            "text": "Confira e complete os dados de contato."
+          },
           {
             "type": "Form",
-            "name": "form_tel_principal",
+            "name": "form_contatos",
             "children": [
-              { "type": "TextInput", "name": "telefone_principal", "label": "Telefone principal", "required": true, "input-type": "phone" },
+              {
+                "type": "TextInput",
+                "name": "telefone_principal",
+                "label": "Telefone principal",
+                "required": true,
+                "input-type": "phone",
+                "init-value": "${data.telefone_principal}"
+              },
+              {
+                "type": "TextInput",
+                "name": "telefone_recado",
+                "label": "Telefone de recado",
+                "required": true,
+                "input-type": "phone",
+                "init-value": "${data.telefone_recado}"
+              },
+              {
+                "type": "TextInput",
+                "name": "nome_contato_recado",
+                "label": "Nome do contato de recado",
+                "required": true,
+                "init-value": "${data.nome_contato_recado}"
+              },
               {
                 "type": "Footer",
                 "label": "Continuar",
@@ -90,42 +159,15 @@
                     "cpf": "${data.cpf}",
                     "nome": "${data.nome}",
                     "family_code": "${data.family_code}",
-                    "telefone_principal": "${form.telefone_principal}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "TELEFONE_RECADO",
-      "title": "Telefone de recado",
-      "terminal": false,
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          { "type": "TextBody", "text": "Informe um telefone para recado e o nome do contato." },
-          {
-            "type": "Form",
-            "name": "form_tel_recado",
-            "children": [
-              { "type": "TextInput", "name": "telefone_recado", "label": "Telefone de recado", "required": true, "input-type": "phone" },
-              { "type": "TextInput", "name": "nome_contato_recado", "label": "Nome do contato", "required": true },
-              {
-                "type": "Footer",
-                "label": "Continuar",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "protocolo": "${data.protocolo}",
-                    "cpf": "${data.cpf}",
-                    "nome": "${data.nome}",
-                    "family_code": "${data.family_code}",
-                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_principal": "${form.telefone_principal}",
                     "telefone_recado": "${form.telefone_recado}",
-                    "nome_contato_recado": "${form.nome_contato_recado}"
+                    "nome_contato_recado": "${form.nome_contato_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}"
                   }
                 }
               }
@@ -135,52 +177,23 @@
       }
     },
     {
-      "id": "CEP_INPUT",
-      "title": "CEP",
-      "terminal": false,
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          { "type": "TextBody", "text": "Digite o CEP da instalação." },
-          {
-            "type": "Form",
-            "name": "form_cep",
-            "children": [
-              { "type": "TextInput", "name": "cep", "label": "CEP", "required": true, "input-type": "number" },
-              {
-                "type": "Footer",
-                "label": "Validar CEP",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "protocolo": "${data.protocolo}",
-                    "cpf": "${data.cpf}",
-                    "nome": "${data.nome}",
-                    "family_code": "${data.family_code}",
-                    "telefone_principal": "${data.telefone_principal}",
-                    "telefone_recado": "${data.telefone_recado}",
-                    "nome_contato_recado": "${data.nome_contato_recado}",
-                    "cep": "${form.cep}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "CONFIRMA_ENDERECO_CEP_1",
+      "id": "CONFIRMA_ENDERECO_ONE",
       "title": "Confirmar endereço",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Confirme se o endereço encontrado está correto." },
-          { "type": "TextBody", "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}" },
+          {
+            "type": "TextBody",
+            "text": "Confirme se o endereço encontrado está correto."
+          },
+          {
+            "type": "TextBody",
+            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+          },
           {
             "type": "Form",
-            "name": "form_confirma_endereco_1",
+            "name": "form_confirma_endereco_one",
             "children": [
               {
                 "type": "Dropdown",
@@ -188,8 +201,14 @@
                 "label": "O endereço está correto?",
                 "required": true,
                 "data-source": [
-                  { "id": "confirmar", "title": "Sim, continuar" },
-                  { "id": "corrigir", "title": "Não, corrigir CEP" }
+                  {
+                    "id": "confirmar",
+                    "title": "Sim, continuar"
+                  },
+                  {
+                    "id": "corrigir",
+                    "title": "Não, corrigir CEP"
+                  }
                 ]
               },
               {
@@ -227,12 +246,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Informe novamente o CEP. Vamos validar viabilidade e fase extra mais uma vez." },
+          {
+            "type": "TextBody",
+            "text": "Informe o CEP apenas se precisar corrigir o endereço."
+          },
           {
             "type": "Form",
             "name": "form_cep_reinput",
             "children": [
-              { "type": "TextInput", "name": "cep", "label": "Novo CEP", "required": true, "input-type": "number" },
+              {
+                "type": "TextInput",
+                "name": "cep",
+                "label": "Novo CEP",
+                "required": true,
+                "input-type": "number"
+              },
               {
                 "type": "Footer",
                 "label": "Revalidar CEP",
@@ -256,26 +284,38 @@
       }
     },
     {
-      "id": "CONFIRMA_ENDERECO_CEP_2",
+      "id": "CONFIRMA_ENDERECO_TWO",
       "title": "Confirmar novo endereço",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Confirme se o novo endereço encontrado está correto." },
-          { "type": "TextBody", "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}" },
+          {
+            "type": "TextBody",
+            "text": "Confirme se o novo endereço encontrado está correto."
+          },
+          {
+            "type": "TextBody",
+            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+          },
           {
             "type": "Form",
-            "name": "form_confirma_endereco_2",
+            "name": "form_confirma_endereco_two",
             "children": [
               {
                 "type": "Dropdown",
                 "name": "decisao_endereco",
-                "label": "Como deseja seguir?",
+                "label": "O endereço está correto?",
                 "required": true,
                 "data-source": [
-                  { "id": "confirmar", "title": "Sim, continuar" },
-                  { "id": "encerrar", "title": "Encerrar para ajuste externo" }
+                  {
+                    "id": "confirmar",
+                    "title": "Sim, continuar"
+                  },
+                  {
+                    "id": "encerrar",
+                    "title": "Não, encerrar para ajuste externo"
+                  }
                 ]
               },
               {
@@ -307,20 +347,69 @@
       }
     },
     {
-      "id": "COMPLEMENTA_ENDERECO",
-      "title": "Complementar endereço",
+      "id": "ENDERECO_COMPLETO",
+      "title": "Endereço",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Complete os dados do endereço." },
+          {
+            "type": "TextBody",
+            "text": "Complete os dados do endereço. Os campos já vieram preenchidos com o endereço localizado."
+          },
           {
             "type": "Form",
-            "name": "form_complementa_endereco",
+            "name": "form_endereco_completo",
             "children": [
-              { "type": "TextInput", "name": "numero", "label": "Número", "required": true },
-              { "type": "TextInput", "name": "bairro", "label": "Bairro", "required": true },
-              { "type": "TextInput", "name": "complemento", "label": "Complemento", "required": false },
+              {
+                "type": "TextInput",
+                "name": "logradouro",
+                "label": "Logradouro",
+                "required": true,
+                "init-value": "${data.logradouro}"
+              },
+              {
+                "type": "TextInput",
+                "name": "numero",
+                "label": "Número",
+                "required": true,
+                "init-value": "${data.numero}"
+              },
+              {
+                "type": "TextInput",
+                "name": "bairro",
+                "label": "Bairro",
+                "required": true,
+                "init-value": "${data.bairro}"
+              },
+              {
+                "type": "TextInput",
+                "name": "cidade",
+                "label": "Cidade",
+                "required": true,
+                "init-value": "${data.cidade}"
+              },
+              {
+                "type": "TextInput",
+                "name": "uf",
+                "label": "UF",
+                "required": true,
+                "init-value": "${data.uf}"
+              },
+              {
+                "type": "TextInput",
+                "name": "complemento",
+                "label": "Complemento",
+                "required": false,
+                "init-value": "${data.complemento}"
+              },
+              {
+                "type": "TextInput",
+                "name": "ponto_referencia",
+                "label": "Ponto de referência",
+                "required": true,
+                "init-value": "${data.ponto_referencia}"
+              },
               {
                 "type": "Footer",
                 "label": "Continuar",
@@ -335,56 +424,14 @@
                     "telefone_recado": "${data.telefone_recado}",
                     "nome_contato_recado": "${data.nome_contato_recado}",
                     "cep": "${data.cep}",
-                    "logradouro": "${data.logradouro}",
-                    "cidade": "${data.cidade}",
-                    "uf": "${data.uf}",
-                    "ibge": "${data.ibge}",
+                    "logradouro": "${form.logradouro}",
                     "numero": "${form.numero}",
                     "bairro": "${form.bairro}",
-                    "complemento": "${form.complemento}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "PONTO_REFERENCIA",
-      "title": "Ponto de referência",
-      "terminal": false,
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          { "type": "TextBody", "text": "Informe um ponto de referência para facilitar a localização." },
-          {
-            "type": "Form",
-            "name": "form_ponto_referencia",
-            "children": [
-              { "type": "TextInput", "name": "ponto_referencia", "label": "Ponto de referência", "required": true },
-              {
-                "type": "Footer",
-                "label": "Continuar",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "protocolo": "${data.protocolo}",
-                    "cpf": "${data.cpf}",
-                    "nome": "${data.nome}",
-                    "family_code": "${data.family_code}",
-                    "telefone_principal": "${data.telefone_principal}",
-                    "telefone_recado": "${data.telefone_recado}",
-                    "nome_contato_recado": "${data.nome_contato_recado}",
-                    "cep": "${data.cep}",
-                    "logradouro": "${data.logradouro}",
-                    "cidade": "${data.cidade}",
-                    "uf": "${data.uf}",
-                    "ibge": "${data.ibge}",
-                    "numero": "${data.numero}",
-                    "bairro": "${data.bairro}",
-                    "complemento": "${data.complemento}",
-                    "ponto_referencia": "${form.ponto_referencia}"
+                    "cidade": "${form.cidade}",
+                    "uf": "${form.uf}",
+                    "complemento": "${form.complemento}",
+                    "ponto_referencia": "${form.ponto_referencia}",
+                    "ibge": "${data.ibge}"
                   }
                 }
               }
@@ -400,7 +447,10 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Selecione o tipo de documento." },
+          {
+            "type": "TextBody",
+            "text": "Selecione o tipo de documento."
+          },
           {
             "type": "Form",
             "name": "form_tipo_documento",
@@ -411,8 +461,14 @@
                 "label": "Tipo de documento",
                 "required": true,
                 "data-source": [
-                  { "id": "RG", "title": "RG" },
-                  { "id": "CNH", "title": "CNH" }
+                  {
+                    "id": "RG",
+                    "title": "RG"
+                  },
+                  {
+                    "id": "CNH",
+                    "title": "CNH"
+                  }
                 ]
               },
               {
@@ -453,12 +509,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Envie a foto da frente do documento." },
+          {
+            "type": "TextBody",
+            "text": "Envie a foto da frente do documento."
+          },
           {
             "type": "Form",
             "name": "form_doc_frente",
             "children": [
-              { "type": "PhotoPicker", "name": "doc_frente", "label": "Foto da frente", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "PhotoPicker",
+                "name": "doc_frente",
+                "label": "Foto da frente",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
               {
                 "type": "Footer",
                 "label": "Enviar",
@@ -498,12 +563,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Envie a foto do verso do documento." },
+          {
+            "type": "TextBody",
+            "text": "Envie a foto do verso do documento."
+          },
           {
             "type": "Form",
             "name": "form_doc_verso",
             "children": [
-              { "type": "PhotoPicker", "name": "doc_verso", "label": "Foto do verso", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "PhotoPicker",
+                "name": "doc_verso",
+                "label": "Foto do verso",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
               {
                 "type": "Footer",
                 "label": "Enviar",
@@ -544,12 +618,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Envie uma selfie segurando o documento." },
+          {
+            "type": "TextBody",
+            "text": "Envie uma selfie segurando o documento."
+          },
           {
             "type": "Form",
             "name": "form_selfie_doc",
             "children": [
-              { "type": "PhotoPicker", "name": "selfie_com_doc", "label": "Selfie com documento", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "PhotoPicker",
+                "name": "selfie_com_doc",
+                "label": "Selfie com documento",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
               {
                 "type": "Footer",
                 "label": "Enviar",
@@ -591,12 +674,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Envie o comprovante de residência." },
+          {
+            "type": "TextBody",
+            "text": "Envie o comprovante de residência."
+          },
           {
             "type": "Form",
             "name": "form_comprovante",
             "children": [
-              { "type": "PhotoPicker", "name": "comprovante_residencia", "label": "Comprovante de residência", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "PhotoPicker",
+                "name": "comprovante_residencia",
+                "label": "Comprovante de residência",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
               {
                 "type": "Footer",
                 "label": "Enviar",
@@ -639,12 +731,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Envie uma foto da fachada do imóvel." },
+          {
+            "type": "TextBody",
+            "text": "Envie uma foto da fachada do imóvel."
+          },
           {
             "type": "Form",
             "name": "form_fachada",
             "children": [
-              { "type": "PhotoPicker", "name": "fachada", "label": "Foto da fachada", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "PhotoPicker",
+                "name": "fachada",
+                "label": "Foto da fachada",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
               {
                 "type": "Footer",
                 "label": "Enviar",
@@ -688,12 +789,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Envie uma foto da TV ligada." },
+          {
+            "type": "TextBody",
+            "text": "Envie uma foto da TV ligada."
+          },
           {
             "type": "Form",
             "name": "form_tv_ligada",
             "children": [
-              { "type": "PhotoPicker", "name": "tv_ligada", "label": "Foto da TV ligada", "min-uploaded-photos": 1, "max-uploaded-photos": 1 },
+              {
+                "type": "PhotoPicker",
+                "name": "tv_ligada",
+                "label": "Foto da TV ligada",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
               {
                 "type": "Footer",
                 "label": "Enviar",
@@ -738,8 +848,14 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Confira os dados abaixo antes de confirmar." },
-          { "type": "TextBody", "text": "${data.resumo_texto}" },
+          {
+            "type": "TextBody",
+            "text": "Confira os dados abaixo antes de confirmar."
+          },
+          {
+            "type": "TextBody",
+            "text": "${data.resumo_texto}"
+          },
           {
             "type": "Form",
             "name": "form_resumo_final",
@@ -750,8 +866,14 @@
                 "label": "Como deseja seguir?",
                 "required": true,
                 "data-source": [
-                  { "id": "confirmar", "title": "Confirmar dados" },
-                  { "id": "encerrar", "title": "Encerrar para ajuste externo" }
+                  {
+                    "id": "confirmar",
+                    "title": "Confirmar dados"
+                  },
+                  {
+                    "id": "encerrar",
+                    "title": "Encerrar para ajuste externo"
+                  }
                 ]
               },
               {
@@ -800,7 +922,10 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "Ao confirmar, seus dados e imagens serão enviados para processamento." },
+          {
+            "type": "TextBody",
+            "text": "Ao confirmar, seus dados e imagens serão enviados para processamento."
+          },
           {
             "type": "Form",
             "name": "form_confirmacao_final",
@@ -850,7 +975,10 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextBody", "text": "${data.finish_message}" },
+          {
+            "type": "TextBody",
+            "text": "${data.finish_message}"
+          },
           {
             "type": "Footer",
             "label": "Concluir",
