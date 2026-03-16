@@ -26,7 +26,23 @@ export function isValidCPF(value) {
 }
 
 export function normalizePhone(value) {
-  return digits(value).slice(0, 11);
+  let phone = digits(value);
+
+  // Remove o DDI do Brasil quando o número vier como 55 + DDD + número.
+  // Exemplos tratados:
+  // 5511999999999 -> 11999999999
+  // 553199999999 -> 3199999999
+  if ((phone.length === 12 || phone.length === 13) && phone.startsWith('55')) {
+    phone = phone.slice(2);
+  }
+
+  // Mantém apenas o trecho final quando o canal enviar identificadores com
+  // prefixos extras, preservando o telefone brasileiro local (DDD + número).
+  if (phone.length > 11) {
+    phone = phone.slice(-11);
+  }
+
+  return phone;
 }
 
 export function isValidPhone(value) {
