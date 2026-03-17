@@ -1,138 +1,62 @@
-# WhatsApp Flows + BullMQ + Proxy CRM
+# whatsapp-flows-endpoint
 
-Projeto refatorado para uma estrutura mais organizada, com suporte a:
+Projeto Node.js com:
+- proxy para APIs do CRM
+- gerenciamento de token
+- Swagger/OpenAPI
+- worker com BullMQ
+- Redis via Docker Compose
 
-- Swagger em `/docs`
-- Spec OpenAPI em `/openapi.json`
-- Proxy para APIs externas do CRM
-- Gestão automática do token `Bearer`
-- Bull Board para acompanhamento da fila
+## Subida rápida
 
-## Endpoints adicionados
+1. Copie o arquivo de exemplo:
 
-### Swagger
+```bash
+cp .env.example .env
+```
 
-- `GET /docs`
-- `GET /openapi.json`
+2. Preencha pelo menos estas variáveis no `.env`:
+
+```env
+CRM_BASE_URL=https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1
+AUTH_URL=https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1/authorization/get-token
+AUTH_USERNAME=seu_usuario
+AUTH_PASSWORD=sua_senha
+```
+
+3. Suba os containers:
+
+```bash
+docker compose up -d --build
+```
+
+## Serviços
+
+- API: `http://localhost:3005`
+- Swagger: `http://localhost:3005/docs`
+- OpenAPI: `http://localhost:3005/openapi.json`
+- Redis: `localhost:6379`
+
+## Endpoints principais
+
 - `GET /proxy/token`
-
-### Proxy CRM
-
-- `GET /proxy/token`
+- `GET /proxy/token?forceRefresh=true`
 - `POST /proxy/service-order/schedule`
 - `GET /proxy/capacity/availabilities?postalCode=...&protocol=...`
 - `PUT /proxy/ticket/customer/:ticketId`
 
-## Como funciona o proxy
+## Observações
 
-A aplicação recebe a chamada no endpoint local, busca o token no `AUTH_URL`, cacheia esse token em memória e envia a requisição ao CRM com o header `Authorization: Bearer ...`. O mesmo token também pode ser consultado externamente pelo endpoint `GET /proxy/token`.
+- O consumer externo pode chamar a sua API e não precisa conhecer a URL real do CRM.
+- O token é obtido internamente e reutilizado com cache.
+- O compose já sobe `app`, `worker` e `redis`.
+- Se não for usar o worker agora, pode comentar o serviço `worker` no `docker-compose.yml`.
 
-Com isso:
-
-- a URL original fica oculta do consumidor
-- o token não precisa ser gerenciado no cliente
-- em caso de `401`, a aplicação limpa o cache e tenta renovar o token automaticamente
-
-## Variáveis importantes
+## Comandos úteis
 
 ```bash
-SWAGGER_BASE_URL=http://localhost:3005
-CRM_BASE_URL=https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1
-AUTH_URL=https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1/authorization/get-token
-AUTH_USERNAME=
-AUTH_PASSWORD=
+docker compose logs -f app
+docker compose logs -f worker
+docker compose down
+docker compose down -v
 ```
-
-## Exemplos de uso
-
-### Obter token
-
-```bash
-curl --location 'http://localhost:3005/proxy/token'
-```
-
-Para forçar renovação:
-
-```bash
-curl --location 'http://localhost:3005/proxy/token?forceRefresh=true'
-```
-
-### Agendar
-
-```bash
-curl --location 'http://localhost:3005/proxy/service-order/schedule' \
---header 'Content-Type: application/json' \
---data '{
-  "protocol": "2026001234",
-  "appointmentDate": "2026-03-20",
-  "shift": "MORNING"
-}'
-```
-
-### Consultar disponibilidades
-
-```bash
-curl --location 'http://localhost:3005/proxy/capacity/availabilities?postalCode=60000000&protocol=2026001234'
-```
-
-### Atualizar ticket/customer
-
-```bash
-curl --location --request PUT 'http://localhost:3005/proxy/ticket/customer/12345' \
---header 'Content-Type: application/json' \
---data '{
-  "protocol": "2026001234",
-  "customerName": "João da Silva"
-}'
-```
-
-## Estrutura
-
-```text
-src/
-  app/
-    create-app.js
-  config/
-    env.js
-    private-key.js
-  controllers/
-    flow.controller.js
-    proxy.controller.js
-    status.controller.js
-  docs/
-    swagger.js
-  lib/
-    auth.js
-    encryption.js
-    http.js
-    media.js
-    r2.js
-    validations.js
-  queues/
-    bullmq.js
-  routes/
-    index.js
-  services/
-    flow.service.js
-    job.service.js
-    proxy.service.js
-    worker.service.js
-  workers/
-    bull-worker.js
-  server.js
-```
-
-## Subida
-
-```bash
-cp env.example .env
-npm install
-npm start
-npm run worker
-```
-
-Acesse depois:
-
-- Swagger: `http://localhost:3005/docs`
-- OpenAPI JSON: `http://localhost:3005/openapi.json`
-- Token: `http://localhost:3005/proxy/token`

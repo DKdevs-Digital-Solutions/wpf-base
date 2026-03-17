@@ -1,58 +1,144 @@
-version: "3.8"
-
-x-common-env: &common-env
-  REDIS_HOST: redis
-  REDIS_PORT: 6379
-
-  JOB_CONCURRENCY: 4
-  JOB_MAX_ATTEMPTS: 5
-  JOB_BACKOFF_DELAY_MS: 5000
-  BULLMQ_QUEUE_NAME: whatsapp-flows
-
-  R2_ACCOUNT_ID: "70a41e8a2dd0ed2395771e2a48c2a83a"
-  R2_ACCESS_KEY_ID: "c5114fb4b0fecd5a5f9469a2fec7bda2"
-  R2_SECRET_ACCESS_KEY: "3a0d894cf904dd9bf8d89c21a05a9cd2ff66b67fb8ee711612e9a80409ed084d"
-  R2_BUCKET: "eaf"
-  R2_REGION: "auto"
-  R2_KEY_PREFIX: "flows"
-  R2_PUBLIC_BASE_URL: "https://pub-c54ecb6f6021463e95790b49774c4e8c.r2.dev"
-
 services:
-  whatsapp-flows-endpoint:
-    build: .
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: whatsapp-flows-endpoint
     restart: unless-stopped
     ports:
-      - "3005:3005"
-    networks:
-      - proxy_public
-      - shared_services
+      - "${PORT:-3005}:3005"
+    env_file:
+      - .env
     environment:
-      <<: *common-env
+      NODE_ENV: production
       PORT: 3005
-      BULL_BOARD_BASE_PATH: /admin/queues
-      PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQDbI6x1ETTymagw\nsON4eF2N24OOBDT1AsqYg/DyAMjK3tN/RKjUOgcgZpFTHLVtcD/4GUjP2wz+NRDS\nEWKhwJWR3J+MvjJnWX7EI1M6NvyuJ3704p9O5uYQywDrJl5qJs4HuZiDxZ6fOcyU\nydo9oslzgyoiE4edE6bSa77L+6nXT1ec2E0Rps7PD5Kv2WTqRZCtemuqH9NiFPvc\nVf1rY9URogD4qt0J4kB07eOkoWe0Iv1rkUqOgELMp+tnLIO2lcOA9KC5X+x825yO\nKKOqnW2LX/KPpIJ4mUtYc6dTVksHKhpWZ77KXE/MQXa1darVhEtulPmrg58Iq1UU\nSSDba6wjAgMBAAECgf9DI5FD5k59OKes7fx/Bfs9YYPTKan+3n4zxJ84MI3czSPu\nOAFfrvAqsFMaPUKL5zYYgFFOkLS3LZwCN8jVkryEyT4Yxz4QfQ4d54GPw1oerAwx\nDAp+xC5SOxM3ownBr0QJ97lTlOuVZY7qj5gSBfiQYuwWyOT/dsolnMwk1Q+SAO/9\nhUoIqs5dk0/rJQx3HOtNsp6yu3HuSuwCFLuvwDsraxxUqJxyvkenm7s/Tw9K2DlW\n8aW8jnCeWZgmwHx5q19EzzC95A9Yzz0MD5kYdHXtO9IEjtJT6XYWd5QB2OXmnXki\nACGFDRUQ+1Jo20l+lZm+bUXPc2hOMxownxpi5lUCgYEA+hPep+jDq3nLA8JBYoLZ\notKfDnO03nnjopDVpr4nQ13v+C2EJuEam9OMU7/r0YJCu5S2F1nxaIfAC/2gOz7t\nm8Y0LzmNevsrUsSPNvAsNls/T4jq8aKx6ZCvJn/SLvRUYUGZmlflEAISpuJ+86xc\nknLdPcF5Z0Q7fs9oLn5cC6cCgYEA4FQ8g3jjAe8q2JqBKP6Or62KxxXvVKkTeZrp\n9G4T0kK2A/R8Tquz98IPB7cZxBp4aUZ6aarqwRwjxyVmFM8OmKUpWS31eHSD1n6/\nrs0zPECu5hhP52BLE3J8lzan/t4iStJqfls96ArRLPudgzTjvZHEvFY3a18DxqLp\nIR7tuyUCgYEAsWTQ5/kEfCocKeFtckzxxz9zFtRbNAnwwQvOksaGoZIMPNdEzDOY\nJXuOKoaU6HxnjBq0hKIHzielwpu6QuyjroGN2QYRZ3CuTbsjAEykgDaAFZJBXwET\nBWTd6gh391jYVlkrdcHtukpOItW+Smo1DKmwaTNKREexkIXeGEUIVDcCgYBUnlHJ\nQgNXSnE+DWHlJciK6gpsOJDzvWdUOqQ/iHo/mNxxt3pgbpJPRctHnMDCYT3EcEpi\nq48r0sKIL0pHVSdrWvmy4wwyKLlGYr9JX6wQ8VFICCmz3HXVWx02KO7Ly9zhnmd/\nTEmYyuPGdQ8gXAYADwlIBbmX7dpNxkvsK29/ZQKBgE9U3ihzfZ+QzHHTQPit4FH/\n5F++4S5wSojkQI/IRHVvWeDhlYUYbYWIMGnfhrbDXhJjoBtiQI1OQB10lxf6DnSS\nL1qW8HuGPVY3JKyjZ6mTRZAGM2qVWnXT+YYgTQTFHG1JI+P0m5vxlBtB95UEjb4L\n9WFu2V47GUjhxhZ+v3uD\n-----END PRIVATE KEY-----"
-      AUTH_URL: "https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1/authorization/get-token"
-      AUTH_USERNAME: "jefferson.soares@abjservicos.com.br"
-      AUTH_PASSWORD: "Eaf#2024"
-      AUTH_SWAP_CREDENTIALS: false
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      BULLMQ_QUEUE_NAME: ${BULLMQ_QUEUE_NAME:-whatsapp-flows}
+      JOB_CONCURRENCY: ${JOB_CONCURRENCY:-4}
+      JOB_MAX_ATTEMPTS: ${JOB_MAX_ATTEMPTS:-5}
+      JOB_BACKOFF_TYPE: ${JOB_BACKOFF_TYPE:-exponential}
+      JOB_BACKOFF_DELAY_MS: ${JOB_BACKOFF_DELAY_MS:-5000}
+      PRIVATE_KEY: ${PRIVATE_KEY:-}
+      PRIVATE_KEY_BASE64: ${PRIVATE_KEY_BASE64:-}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_REGION: ${R2_REGION:-auto}
+      R2_KEY_PREFIX: ${R2_KEY_PREFIX:-flows}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+      AUTH_URL: ${AUTH_URL}
+      AUTH_USERNAME: ${AUTH_USERNAME}
+      AUTH_PASSWORD: ${AUTH_PASSWORD}
+      AUTH_SWAP_CREDENTIALS: ${AUTH_SWAP_CREDENTIALS:-false}
+      AUTH_TIMEOUT_MS: ${AUTH_TIMEOUT_MS:-15000}
+      AUTH_REFRESH_BEFORE_MS: ${AUTH_REFRESH_BEFORE_MS:-300000}
+      AUTH_API_KEY: ${AUTH_API_KEY:-}
+      AUTH_SUBSCRIPTION_KEY: ${AUTH_SUBSCRIPTION_KEY:-}
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:-}
+      AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET:-}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-}
+      AUTH_GRANT_TYPE: ${AUTH_GRANT_TYPE:-client_credentials}
+      API_TIMEOUT_MS: ${API_TIMEOUT_MS:-15000}
+      SWAGGER_BASE_URL: ${SWAGGER_BASE_URL:-http://localhost:3005}
+      CRM_BASE_URL: ${CRM_BASE_URL}
+      CADASTRO_UNICO_API_URL: ${CADASTRO_UNICO_API_URL:-}
+      FAMILY_CODE_VERIFICATION_API_URL: ${FAMILY_CODE_VERIFICATION_API_URL:-}
+      EXTRA_PHASE_FAMILY_API_URL: ${EXTRA_PHASE_FAMILY_API_URL:-}
+      CITY_AVAILABILITY_API_URL: ${CITY_AVAILABILITY_API_URL:-}
+      EXTRA_PHASE_IBGE_API_URL: ${EXTRA_PHASE_IBGE_API_URL:-}
+      CEP_API_URL: ${CEP_API_URL:-}
+      CADUNICO_CHANNEL: ${CADUNICO_CHANNEL:-WHATSAPP}
+      CADUNICO_CLASSIFICATION: ${CADUNICO_CLASSIFICATION:-AGENDAMENTO}
+      CADUNICO_WHO_CONTACTED: ${CADUNICO_WHO_CONTACTED:-}
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3005/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
-  whatsapp-flows-worker:
-    build: .
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: whatsapp-flows-worker
     restart: unless-stopped
     command: ["npm", "run", "worker"]
-    networks:
-      - shared_services
+    env_file:
+      - .env
     environment:
-      <<: *common-env
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      BULLMQ_QUEUE_NAME: ${BULLMQ_QUEUE_NAME:-whatsapp-flows}
+      JOB_CONCURRENCY: ${JOB_CONCURRENCY:-4}
+      JOB_MAX_ATTEMPTS: ${JOB_MAX_ATTEMPTS:-5}
+      JOB_BACKOFF_TYPE: ${JOB_BACKOFF_TYPE:-exponential}
+      JOB_BACKOFF_DELAY_MS: ${JOB_BACKOFF_DELAY_MS:-5000}
+      PRIVATE_KEY: ${PRIVATE_KEY:-}
+      PRIVATE_KEY_BASE64: ${PRIVATE_KEY_BASE64:-}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_REGION: ${R2_REGION:-auto}
+      R2_KEY_PREFIX: ${R2_KEY_PREFIX:-flows}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+      AUTH_URL: ${AUTH_URL}
+      AUTH_USERNAME: ${AUTH_USERNAME}
+      AUTH_PASSWORD: ${AUTH_PASSWORD}
+      AUTH_SWAP_CREDENTIALS: ${AUTH_SWAP_CREDENTIALS:-false}
+      AUTH_TIMEOUT_MS: ${AUTH_TIMEOUT_MS:-15000}
+      AUTH_REFRESH_BEFORE_MS: ${AUTH_REFRESH_BEFORE_MS:-300000}
+      AUTH_API_KEY: ${AUTH_API_KEY:-}
+      AUTH_SUBSCRIPTION_KEY: ${AUTH_SUBSCRIPTION_KEY:-}
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:-}
+      AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET:-}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-}
+      AUTH_GRANT_TYPE: ${AUTH_GRANT_TYPE:-client_credentials}
+      API_TIMEOUT_MS: ${API_TIMEOUT_MS:-15000}
+      SWAGGER_BASE_URL: ${SWAGGER_BASE_URL:-http://localhost:3005}
+      CRM_BASE_URL: ${CRM_BASE_URL}
+      CADASTRO_UNICO_API_URL: ${CADASTRO_UNICO_API_URL:-}
+      FAMILY_CODE_VERIFICATION_API_URL: ${FAMILY_CODE_VERIFICATION_API_URL:-}
+      EXTRA_PHASE_FAMILY_API_URL: ${EXTRA_PHASE_FAMILY_API_URL:-}
+      CITY_AVAILABILITY_API_URL: ${CITY_AVAILABILITY_API_URL:-}
+      EXTRA_PHASE_IBGE_API_URL: ${EXTRA_PHASE_IBGE_API_URL:-}
+      CEP_API_URL: ${CEP_API_URL:-}
+      CADUNICO_CHANNEL: ${CADUNICO_CHANNEL:-WHATSAPP}
+      CADUNICO_CLASSIFICATION: ${CADUNICO_CLASSIFICATION:-AGENDAMENTO}
+      CADUNICO_WHO_CONTACTED: ${CADUNICO_WHO_CONTACTED:-}
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - ./data:/app/data
 
-networks:
-  proxy_public:
-    external: true
-  shared_services:
-    external: true
+  redis:
+    image: redis:7-alpine
+    container_name: whatsapp-flows-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
