@@ -15,7 +15,7 @@ export function buildOpenApiSpec(env = process.env) {
         version: '1.1.0',
         description: 'API de proxy para ocultar a URL original do CRM, centralizar autenticação e expor documentação Swagger.'
       },
-      servers: [{ url: serverUrl }],
+      servers: [{ url: '/' }],
       tags: [
         { name: 'Health', description: 'Endpoints de status da aplicação' },
         { name: 'Auth', description: 'Token para uso externo e interno' },

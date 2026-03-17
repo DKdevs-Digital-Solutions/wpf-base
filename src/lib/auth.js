@@ -13,36 +13,14 @@ function now() {
 }
 
 function buildAuthPayload() {
-  const grantType = env('AUTH_GRANT_TYPE', 'client_credentials');
-  const username = env('AUTH_USERNAME');
-  const password = env('AUTH_PASSWORD');
-  const clientId = env('AUTH_CLIENT_ID');
-  const clientSecret = env('AUTH_CLIENT_SECRET');
-  const audience = env('AUTH_AUDIENCE');
-
   return {
-    grant_type: grantType,
-    username,
-    password,
-    client_id: clientId,
-    client_secret: clientSecret,
-    audience
+    username: env('AUTH_USERNAME'),
+    password: env('AUTH_PASSWORD')
   };
 }
 
-function getConfiguredAuthHeaders() {
-  const headers = { 'Content-Type': 'application/json' };
-  const apiKey = env('AUTH_API_KEY');
-  const subscriptionKey = env('AUTH_SUBSCRIPTION_KEY');
-
-  if (apiKey) headers['x-api-key'] = apiKey;
-  if (subscriptionKey) headers['Ocp-Apim-Subscription-Key'] = subscriptionKey;
-
-  return headers;
-}
-
 function normalizeTokenResponse(data = {}) {
-  const token = data.access_token || data.token || data.id_token || '';
+  const token = data.access_token || data.token || data.id_token || data.jwt || '';
   const expiresInSeconds = Number(data.expires_in || data.expiresIn || 43200);
   const safetyWindowMs = Number(env('AUTH_REFRESH_BEFORE_MS', 300000));
 
@@ -59,9 +37,7 @@ export function clearTokenCache() {
 }
 
 export async function fetchAccessToken(forceRefresh = false) {
-  if (!env('AUTH_URL')) {
-    return '';
-  }
+  if (!env('AUTH_URL')) return '';
 
   if (!forceRefresh && cachedToken && cachedExpiresAt > now()) {
     return cachedToken;
@@ -73,12 +49,17 @@ export async function fetchAccessToken(forceRefresh = false) {
 
   inFlightPromise = axios.post(env('AUTH_URL'), buildAuthPayload(), {
     timeout: Number(env('AUTH_TIMEOUT_MS', 15000)),
-    headers: getConfiguredAuthHeaders()
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    }
   }).then(({ data }) => {
     const normalized = normalizeTokenResponse(data);
+
     if (!normalized.token) {
-      throw new Error('Auth sem access_token na resposta.');
+      throw new Error(`Auth sem token na resposta: ${JSON.stringify(data)}`);
     }
+
     cachedToken = normalized.token;
     cachedExpiresAt = normalized.expiresAt;
     return cachedToken;
