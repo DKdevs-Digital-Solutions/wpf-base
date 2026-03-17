@@ -24,6 +24,8 @@ export function getEnv() {
     AUTH_USERNAME: process.env.AUTH_USERNAME || '',
     AUTH_PASSWORD: process.env.AUTH_PASSWORD || '',
     AUTH_REFRESH_BEFORE_MS: getEnvNumber('AUTH_REFRESH_BEFORE_MS', 300000),
-    API_TIMEOUT_MS: getEnvNumber('API_TIMEOUT_MS', 15000)
+    API_TIMEOUT_MS: getEnvNumber('API_TIMEOUT_MS', 15000),
+    SWAGGER_BASE_URL: process.env.SWAGGER_BASE_URL || '',
+    CRM_BASE_URL: process.env.CRM_BASE_URL || process.env.CRM_PROXY_BASE_URL || 'https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1'
   };
 }

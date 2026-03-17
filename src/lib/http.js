@@ -19,8 +19,8 @@ function defaultHeaders(correlationId = '') {
   return headers;
 }
 
-export async function apiGet(url, { params = {}, headers = {}, authenticated = true, timeout } = {}) {
-  const requestHeaders = { ...defaultHeaders(params.protocol || params.protocolo || ''), ...headers };
+async function withAuthorization(headers = {}, authenticated = true) {
+  const requestHeaders = { ...headers };
 
   if (authenticated) {
     const authorization = await getAuthorizationHeader();
@@ -29,9 +29,26 @@ export async function apiGet(url, { params = {}, headers = {}, authenticated = t
     }
   }
 
+  return requestHeaders;
+}
+
+async function requestWithRetry(method, url, {
+  params = {},
+  data,
+  headers = {},
+  authenticated = true,
+  timeout,
+  correlationId = ''
+} = {}) {
+  const baseHeaders = { ...defaultHeaders(correlationId || params.protocol || params.protocolo || ''), ...headers };
+  const requestHeaders = await withAuthorization(baseHeaders, authenticated);
+
   try {
-    const response = await axios.get(cleanUrl(url), {
+    const response = await axios({
+      method,
+      url: cleanUrl(url),
       params,
+      data,
       headers: requestHeaders,
       timeout: timeout || Number(env('API_TIMEOUT_MS', 15000))
     });
@@ -39,11 +56,12 @@ export async function apiGet(url, { params = {}, headers = {}, authenticated = t
   } catch (error) {
     if (error?.response?.status === 401 && authenticated) {
       clearTokenCache();
-      const authorization = await getAuthorizationHeader();
-      const retriedHeaders = { ...requestHeaders };
-      if (authorization) retriedHeaders.Authorization = authorization;
-      const response = await axios.get(cleanUrl(url), {
+      const retriedHeaders = await withAuthorization(baseHeaders, authenticated);
+      const response = await axios({
+        method,
+        url: cleanUrl(url),
         params,
+        data,
         headers: retriedHeaders,
         timeout: timeout || Number(env('API_TIMEOUT_MS', 15000))
       });
@@ -51,4 +69,16 @@ export async function apiGet(url, { params = {}, headers = {}, authenticated = t
     }
     throw error;
   }
+}
+
+export async function apiGet(url, options = {}) {
+  return requestWithRetry('get', url, options);
+}
+
+export async function apiPost(url, data, options = {}) {
+  return requestWithRetry('post', url, { ...options, data });
+}
+
+export async function apiPut(url, data, options = {}) {
+  return requestWithRetry('put', url, { ...options, data });
 }
