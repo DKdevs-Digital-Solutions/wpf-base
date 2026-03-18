@@ -19,6 +19,20 @@ function buildAuthPayload() {
   };
 }
 
+function getConfiguredAuthHeaders() {
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+  };
+  const apiKey = env('AUTH_API_KEY');
+  const subscriptionKey = env('AUTH_SUBSCRIPTION_KEY');
+
+  if (apiKey) headers['x-api-key'] = apiKey;
+  if (subscriptionKey) headers['Ocp-Apim-Subscription-Key'] = subscriptionKey;
+
+  return headers;
+}
+
 function normalizeTokenResponse(data = {}) {
   const token = data.access_token || data.token || data.id_token || data.jwt || '';
   const expiresInSeconds = Number(data.expires_in || data.expiresIn || 43200);
@@ -37,7 +51,9 @@ export function clearTokenCache() {
 }
 
 export async function fetchAccessToken(forceRefresh = false) {
-  if (!env('AUTH_URL')) return '';
+  if (!env('AUTH_URL')) {
+    return '';
+  }
 
   if (!forceRefresh && cachedToken && cachedExpiresAt > now()) {
     return cachedToken;
@@ -49,17 +65,12 @@ export async function fetchAccessToken(forceRefresh = false) {
 
   inFlightPromise = axios.post(env('AUTH_URL'), buildAuthPayload(), {
     timeout: Number(env('AUTH_TIMEOUT_MS', 15000)),
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    }
+    headers: getConfiguredAuthHeaders()
   }).then(({ data }) => {
     const normalized = normalizeTokenResponse(data);
-
     if (!normalized.token) {
-      throw new Error(`Auth sem token na resposta: ${JSON.stringify(data)}`);
+      throw new Error(`Auth sem access_token na resposta: ${JSON.stringify(data)}`);
     }
-
     cachedToken = normalized.token;
     cachedExpiresAt = normalized.expiresAt;
     return cachedToken;

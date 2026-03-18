@@ -1,18 +1,12 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 
-function cleanUrl(url = '') {
-  return String(url || '').replace(/\/+$/g, '');
-}
-
-export function buildOpenApiSpec(env = process.env) {
-  const serverUrl = cleanUrl(env.SWAGGER_BASE_URL || `http://localhost:${env.PORT || 3005}`);
-
+export function buildOpenApiSpec(_env = process.env) {
   return swaggerJsdoc({
     definition: {
       openapi: '3.0.3',
       info: {
         title: 'WPF Base Proxy API',
-        version: '1.1.0',
+        version: '1.2.0',
         description: 'API de proxy para ocultar a URL original do CRM, centralizar autenticação e expor documentação Swagger.'
       },
       servers: [{ url: '/' }],
@@ -22,6 +16,14 @@ export function buildOpenApiSpec(env = process.env) {
         { name: 'Proxy CRM', description: 'Endpoints proxy com gestão automática do token' }
       ],
       components: {
+        securitySchemes: {
+          ApiKeyAuth: {
+            type: 'apiKey',
+            in: 'header',
+            name: 'x-api-key',
+            description: 'Chave geral exigida nas rotas públicas em /proxy, enviada no header x-api-key.'
+          }
+        },
         schemas: {
           GenericProxySuccess: {
             type: 'object',
@@ -107,6 +109,7 @@ export function buildOpenApiSpec(env = process.env) {
             tags: ['Auth'],
             summary: 'Obter token do CRM para consumo externo',
             description: 'Também é usado internamente pelo proxy. Use forceRefresh=true para forçar a renovação.',
+            security: [{ ApiKeyAuth: [] }],
             parameters: [
               {
                 name: 'forceRefresh',
@@ -124,6 +127,14 @@ export function buildOpenApiSpec(env = process.env) {
                     schema: { $ref: '#/components/schemas/TokenSuccess' }
                   }
                 }
+              },
+              401: {
+                description: 'x-api-key ausente ou inválida',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericError' }
+                  }
+                }
               }
             }
           }
@@ -133,6 +144,7 @@ export function buildOpenApiSpec(env = process.env) {
             tags: ['Proxy CRM'],
             summary: 'Escolher a data de agendamento',
             description: 'Encaminha a chamada para o CRM usando CRM_BASE_URL e injeta o token automaticamente.',
+            security: [{ ApiKeyAuth: [] }],
             requestBody: {
               required: true,
               content: {
@@ -159,7 +171,7 @@ export function buildOpenApiSpec(env = process.env) {
                 }
               },
               401: {
-                description: 'Erro de autenticação no upstream',
+                description: 'Erro de autenticação no upstream ou x-api-key inválida',
                 content: {
                   'application/json': {
                     schema: { $ref: '#/components/schemas/GenericError' }
@@ -173,6 +185,7 @@ export function buildOpenApiSpec(env = process.env) {
           get: {
             tags: ['Proxy CRM'],
             summary: 'Consultar disponibilidades de agenda',
+            security: [{ ApiKeyAuth: [] }],
             parameters: [
               {
                 name: 'postalCode',
@@ -205,6 +218,14 @@ export function buildOpenApiSpec(env = process.env) {
                     schema: { $ref: '#/components/schemas/GenericError' }
                   }
                 }
+              },
+              401: {
+                description: 'x-api-key ausente ou inválida',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericError' }
+                  }
+                }
               }
             }
           }
@@ -213,6 +234,7 @@ export function buildOpenApiSpec(env = process.env) {
           put: {
             tags: ['Proxy CRM'],
             summary: 'Atualizar ticket/customer por ID',
+            security: [{ ApiKeyAuth: [] }],
             parameters: [
               {
                 name: 'ticketId',
@@ -241,6 +263,70 @@ export function buildOpenApiSpec(env = process.env) {
               },
               400: {
                 description: 'Erro de validação',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericError' }
+                  }
+                }
+              },
+              401: {
+                description: 'x-api-key ausente ou inválida',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericError' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        '/proxy/ticket': {
+          get: {
+            tags: ['Proxy CRM'],
+            summary: 'Consultar ticket por documento',
+            security: [{ ApiKeyAuth: [] }],
+            parameters: [
+              {
+                name: 'document',
+                in: 'query',
+                required: true,
+                schema: { type: 'string' },
+                description: 'Número do documento.'
+              },
+              {
+                name: 'documentType',
+                in: 'query',
+                required: false,
+                schema: { type: 'string', example: 'CPF' },
+                description: 'Tipo do documento. Também aceita document-type.'
+              },
+              {
+                name: 'document-type',
+                in: 'query',
+                required: false,
+                schema: { type: 'string', example: 'CPF' },
+                description: 'Alias para documentType.'
+              }
+            ],
+            responses: {
+              200: {
+                description: 'Consulta realizada com sucesso',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericProxySuccess' }
+                  }
+                }
+              },
+              400: {
+                description: 'Erro de validação',
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericError' }
+                  }
+                }
+              },
+              401: {
+                description: 'x-api-key ausente ou inválida',
                 content: {
                   'application/json': {
                     schema: { $ref: '#/components/schemas/GenericError' }

@@ -42,6 +42,8 @@ services:
       CRM_BASE_URL: "https://crm-bot-stg.sigaantenado.com.br/crm/bot/api/v1"
       SWAGGER_BASE_URL: "https://wfe.services.dkdevs.com.br"
 
+      API_KEY: "(2>7N7G?r{?y9(Ya:h%LfAIJ%}m?KDOlKPQUEj!8Na6"   # 👈 única variável nova
+
     volumes:
       - ./data:/app/data
 

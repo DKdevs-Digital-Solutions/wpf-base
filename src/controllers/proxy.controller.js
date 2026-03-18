@@ -29,7 +29,7 @@ export function createProxyController({ proxyService }) {
         const data = await proxyService.getToken({ forceRefresh });
         return res.status(200).json({ ok: true, data });
       } catch (error) {
-        console.error('Erro ao obter token:', error.message);
+        console.error('Erro ao obter token:', error.response?.data || error.message);
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }
@@ -40,7 +40,7 @@ export function createProxyController({ proxyService }) {
         const data = await proxyService.schedule(req.body || {});
         return res.status(200).json({ ok: true, data });
       } catch (error) {
-        console.error('Erro ao agendar serviço:', error.message);
+        console.error('Erro ao agendar serviço:', error.response?.data || error.message);
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }
@@ -62,7 +62,7 @@ export function createProxyController({ proxyService }) {
         const data = await proxyService.getAvailabilities({ postalCode, protocol });
         return res.status(200).json({ ok: true, data });
       } catch (error) {
-        console.error('Erro ao consultar availabilities:', error.message);
+        console.error('Erro ao consultar availabilities:', error.response?.data || error.message);
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }
@@ -83,7 +83,29 @@ export function createProxyController({ proxyService }) {
         const data = await proxyService.updateTicketCustomer(ticketId, req.body || {});
         return res.status(200).json({ ok: true, data });
       } catch (error) {
-        console.error('Erro ao atualizar ticket customer:', error.message);
+        console.error('Erro ao atualizar ticket customer:', error.response?.data || error.message);
+        const normalized = normalizeAxiosError(error);
+        return res.status(normalized.status).json(normalized.body);
+      }
+    },
+
+    getTicketByDocument: async (req, res) => {
+      const document = String(req.query.document || '').trim();
+      const documentType = String(req.query.documentType || req.query['document-type'] || '').trim();
+
+      if (!document || !documentType) {
+        return res.status(400).json({
+          ok: false,
+          error: 'validation_error',
+          message: 'document e documentType (ou document-type) são obrigatórios.'
+        });
+      }
+
+      try {
+        const data = await proxyService.getTicketByDocument({ document, documentType });
+        return res.status(200).json({ ok: true, data });
+      } catch (error) {
+        console.error('Erro ao consultar ticket por documento:', error.response?.data || error.message);
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }

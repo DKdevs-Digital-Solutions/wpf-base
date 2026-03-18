@@ -60,3 +60,17 @@ docker compose logs -f worker
 docker compose down
 docker compose down -v
 ```
+
+
+## Segurança das rotas públicas
+
+As rotas em `/proxy` aceitam um chave geral de acesso definido em `API_KEY`.
+
+Envie de um destes jeitos:
+- header `x-api-key: SEU_TOKEN`
+- header `Authorization: Bearer SEU_TOKEN`
+- querystring ``
+
+## Nova rota adicionada
+
+- `GET /proxy/ticket?document=00165120304&document-type=CPF`

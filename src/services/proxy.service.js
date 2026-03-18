@@ -45,6 +45,16 @@ export function createProxyService(env = process.env) {
         headers: { 'Content-Type': 'application/json' },
         correlationId: payload?.protocol || payload?.protocolo || ticketId
       });
+    },
+
+    async getTicketByDocument({ document, documentType }) {
+      return apiGet(joinUrl(baseUrl, '/ticket'), {
+        params: {
+          document,
+          'document-type': documentType
+        },
+        correlationId: document
+      });
     }
   };
 }
