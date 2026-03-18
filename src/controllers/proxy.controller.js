@@ -111,7 +111,6 @@ export function createProxyController({ proxyService }) {
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }
-    },
-}
+    }
   };
-
+}

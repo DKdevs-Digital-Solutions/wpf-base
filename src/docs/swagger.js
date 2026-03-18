@@ -283,29 +283,16 @@ export function buildOpenApiSpec(_env = process.env) {
         '/proxy/ticket': {
           get: {
             tags: ['Proxy CRM'],
-            summary: 'Consultar ticket por documento',
+            summary: 'Consultar ticket por CPF',
+            description: 'O proxy sempre envia document-type=CPF para o CRM. Informe apenas o CPF em document.',
             security: [{ ApiKeyAuth: [] }],
             parameters: [
               {
                 name: 'document',
                 in: 'query',
                 required: true,
-                schema: { type: 'string' },
-                description: 'Número do documento.'
-              },
-              {
-                name: 'documentType',
-                in: 'query',
-                required: false,
-                schema: { type: 'string', example: 'CPF' },
-                description: 'Tipo do documento. Também aceita CPF (fixo no proxy).'
-              },
-              {
-                name: 'CPF (fixo no proxy)',
-                in: 'query',
-                required: false,
-                schema: { type: 'string', example: 'CPF' },
-                description: 'Alias para documentType.'
+                schema: { type: 'string', example: '00165120304' },
+                description: 'CPF do cliente.'
               }
             ],
             responses: {
