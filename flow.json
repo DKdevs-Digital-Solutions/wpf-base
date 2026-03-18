@@ -222,7 +222,7 @@
           },
           {
             "type": "TextBody",
-            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}\nComplemento: ${data.complemento}"
           },
           {
             "type": "Form",
@@ -601,7 +601,7 @@
           },
           {
             "type": "TextBody",
-            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}\nComplemento: ${data.complemento}"
           },
           {
             "type": "Form",
