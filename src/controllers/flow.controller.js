@@ -21,6 +21,7 @@ export function createFlowController({ privateKey, enqueueJob }) {
           const responsePayload = await handleFlowStep({
             screen: 'INIT',
             data,
+            version,
             enqueueJob
           });
 
@@ -32,7 +33,7 @@ export function createFlowController({ privateKey, enqueueJob }) {
           console.log('Screen:', screen);
           console.log('Payload recebido:', JSON.stringify(data, null, 2));
 
-          const responsePayload = await handleFlowStep({ screen, data, enqueueJob });
+          const responsePayload = await handleFlowStep({ screen, data, version, enqueueJob });
           const encryptedResponse = encryptResponse(responsePayload, aesKeyBuffer, initialVectorBuffer);
           return res.status(200).type('text/plain').send(encryptedResponse);
         }
