@@ -3,7 +3,6 @@
   "data_api_version": "3.0",
   "routing_model": {
     "CPF_INPUT": [
-      "CPF_INPUT",
       "CONFIRMA_ENDERECO_ONE",
       "CEP_REINPUT",
       "FINISH"
@@ -142,6 +141,76 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf_attempts": {
+          "type": "number",
+          "__example__": 0
+        },
+        "cpf_feedback": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -153,7 +222,11 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Confira e complete os dados de contato."
+            "text": "Complete os dados de contato."
+          },
+          {
+            "type": "TextBody",
+            "text": "Telefone principal informado: ${data.telefone_principal}"
           },
           {
             "type": "Form",
@@ -161,26 +234,16 @@
             "children": [
               {
                 "type": "TextInput",
-                "name": "telefone_principal",
-                "label": "Telefone principal",
-                "required": true,
-                "input-type": "phone",
-                "init-value": "${data.telefone_principal}"
-              },
-              {
-                "type": "TextInput",
                 "name": "telefone_recado",
-                "label": "Telefone de recado",
-                "required": true,
-                "input-type": "phone",
-                "init-value": "${data.telefone_recado}"
+                "label": "Outro número de telefone",
+                "required": false,
+                "input-type": "phone"
               },
               {
                 "type": "TextInput",
                 "name": "nome_contato_recado",
                 "label": "Nome do contato de recado",
-                "required": true,
-                "init-value": "${data.nome_contato_recado}"
+                "required": false
               },
               {
                 "type": "Footer",
@@ -192,14 +255,17 @@
                     "cpf": "${data.cpf}",
                     "nome": "${data.nome}",
                     "family_code": "${data.family_code}",
-                    "telefone_principal": "${form.telefone_principal}",
+                    "telefone_principal": "${data.telefone_principal}",
                     "telefone_recado": "${form.telefone_recado}",
                     "nome_contato_recado": "${form.nome_contato_recado}",
                     "cep": "${data.cep}",
                     "logradouro": "${data.logradouro}",
+                    "numero": "${data.numero}",
                     "bairro": "${data.bairro}",
                     "cidade": "${data.cidade}",
                     "uf": "${data.uf}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
                     "ibge": "${data.ibge}"
                   }
                 }
@@ -207,6 +273,64 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -262,6 +386,7 @@
                     "bairro": "${data.bairro}",
                     "cidade": "${data.cidade}",
                     "uf": "${data.uf}",
+                    "complemento": "${data.complemento}",
                     "ibge": "${data.ibge}",
                     "decisao_endereco": "${form.decisao_endereco}"
                   }
@@ -270,22 +395,80 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
       "id": "COMPLEMENTAR_ENDERECO_CADASTRAL",
-      "title": "Completar endereço",
+      "title": "Complementar endereço",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
           {
             "type": "TextBody",
-            "text": "Precisamos completar alguns dados do endereço encontrado."
+            "text": "Alguns dados do endereço não vieram completos. Revise as informações atuais e preencha os campos necessários."
           },
           {
             "type": "TextBody",
-            "text": "CEP: ${data.cep}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+            "text": "CEP atual: ${data.cep}\nLogradouro atual: ${data.logradouro}\nBairro atual: ${data.bairro}\nCidade atual: ${data.cidade}\nUF atual: ${data.uf}\nComplemento atual: ${data.complemento}"
           },
           {
             "type": "Form",
@@ -295,22 +478,19 @@
                 "type": "TextInput",
                 "name": "logradouro",
                 "label": "Logradouro",
-                "required": true,
-                "init-value": "${data.logradouro}"
+                "required": false
               },
               {
                 "type": "TextInput",
                 "name": "bairro",
                 "label": "Bairro",
-                "required": true,
-                "init-value": "${data.bairro}"
+                "required": false
               },
               {
                 "type": "TextInput",
                 "name": "complemento",
                 "label": "Complemento",
-                "required": true,
-                "init-value": "${data.complemento}"
+                "required": false
               },
               {
                 "type": "Footer",
@@ -330,9 +510,9 @@
                     "bairro": "${form.bairro}",
                     "cidade": "${data.cidade}",
                     "uf": "${data.uf}",
+                    "complemento": "${form.complemento}",
                     "ibge": "${data.ibge}",
                     "numero": "${data.numero}",
-                    "complemento": "${form.complemento}",
                     "ponto_referencia": "${data.ponto_referencia}"
                   }
                 }
@@ -340,6 +520,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -414,6 +660,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -435,8 +747,7 @@
                 "type": "TextInput",
                 "name": "valor_campo_endereco",
                 "label": "Novo valor",
-                "required": true,
-                "init-value": "${data.valor_campo_endereco}"
+                "required": true
               },
               {
                 "type": "Footer",
@@ -468,6 +779,76 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "campo_endereco": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -534,6 +915,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -586,6 +1033,68 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -641,6 +1150,7 @@
                     "bairro": "${data.bairro}",
                     "cidade": "${data.cidade}",
                     "uf": "${data.uf}",
+                    "complemento": "${data.complemento}",
                     "ibge": "${data.ibge}",
                     "decisao_endereco": "${form.decisao_endereco}"
                   }
@@ -649,18 +1159,80 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
       "id": "ENDERECO_COMPLETO",
-      "title": "Endereço",
+      "title": "Complemento do endereço",
       "terminal": false,
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
           {
             "type": "TextBody",
-            "text": "Complete os dados do endereço. Os campos já vieram preenchidos com o endereço localizado."
+            "text": "Endereço confirmado:"
+          },
+          {
+            "type": "TextBody",
+            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}\nComplemento: ${data.complemento}"
           },
           {
             "type": "Form",
@@ -668,52 +1240,15 @@
             "children": [
               {
                 "type": "TextInput",
-                "name": "logradouro",
-                "label": "Logradouro",
-                "required": true,
-                "init-value": "${data.logradouro}"
-              },
-              {
-                "type": "TextInput",
                 "name": "numero",
                 "label": "Número",
-                "required": true,
-                "init-value": "${data.numero}"
-              },
-              {
-                "type": "TextInput",
-                "name": "bairro",
-                "label": "Bairro",
-                "required": true,
-                "init-value": "${data.bairro}"
-              },
-              {
-                "type": "TextInput",
-                "name": "cidade",
-                "label": "Cidade",
-                "required": true,
-                "init-value": "${data.cidade}"
-              },
-              {
-                "type": "TextInput",
-                "name": "uf",
-                "label": "UF",
-                "required": true,
-                "init-value": "${data.uf}"
-              },
-              {
-                "type": "TextInput",
-                "name": "complemento",
-                "label": "Complemento",
-                "required": false,
-                "init-value": "${data.complemento}"
+                "required": true
               },
               {
                 "type": "TextInput",
                 "name": "ponto_referencia",
                 "label": "Ponto de referência",
-                "required": true,
-                "init-value": "${data.ponto_referencia}"
+                "required": true
               },
               {
                 "type": "Footer",
@@ -729,12 +1264,12 @@
                     "telefone_recado": "${data.telefone_recado}",
                     "nome_contato_recado": "${data.nome_contato_recado}",
                     "cep": "${data.cep}",
-                    "logradouro": "${form.logradouro}",
+                    "logradouro": "${data.logradouro}",
                     "numero": "${form.numero}",
-                    "bairro": "${form.bairro}",
-                    "cidade": "${form.cidade}",
-                    "uf": "${form.uf}",
-                    "complemento": "${form.complemento}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "complemento": "${data.complemento}",
                     "ponto_referencia": "${form.ponto_referencia}",
                     "ibge": "${data.ibge}"
                   }
@@ -743,6 +1278,64 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -805,6 +1398,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -859,6 +1518,76 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -914,6 +1643,88 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -970,6 +1781,100 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -1027,6 +1932,112 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -1085,6 +2096,124 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -1144,6 +2273,136 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -1218,6 +2477,152 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "resumo_texto": {
+          "type": "string",
+          "__example__": ""
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tv_ligada": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -1270,6 +2675,148 @@
             ]
           }
         ]
+      },
+      "data": {
+        "bairro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cep": {
+          "type": "string",
+          "__example__": ""
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": ""
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": ""
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": ""
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome": {
+          "type": "string",
+          "__example__": ""
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "numero": {
+          "type": "string",
+          "__example__": ""
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": ""
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": ""
+        },
+        "tv_ligada": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": []
+        },
+        "uf": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     },
     {
@@ -1299,6 +2846,32 @@
             }
           }
         ]
+      },
+      "data": {
+        "finish_message": {
+          "type": "string",
+          "__example__": ""
+        },
+        "job_id": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": ""
+        },
+        "reason": {
+          "type": "string",
+          "__example__": ""
+        },
+        "reason_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "status": {
+          "type": "string",
+          "__example__": ""
+        }
       }
     }
   ]
