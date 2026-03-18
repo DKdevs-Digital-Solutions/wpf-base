@@ -111,6 +111,34 @@ export function createProxyController({ proxyService }) {
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }
-    }
+    },
+
+    cadastroUnicoVerification: async (req, res) => {
+  const { channel, classification, document, documentType } = req.query;
+
+  if (!document) {
+    return res.status(400).json({
+      ok: false,
+      error: 'validation_error',
+      message: 'document é obrigatório.'
+    });
+  }
+
+  try {
+    const data = await proxyService.cadastroUnicoVerification({
+      channel,
+      classification,
+      document,
+      documentType
+    });
+
+    return res.status(200).json({ ok: true, data });
+  } catch (error) {
+    console.error('Erro cadastro-unico-verification:', error.response?.data || error.message);
+    const normalized = normalizeAxiosError(error);
+    return res.status(normalized.status).json(normalized.body);
+  }
+}
+    
   };
 }

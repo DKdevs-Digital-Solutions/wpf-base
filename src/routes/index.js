@@ -39,7 +39,7 @@ export function createAppRouter({ flowController, statusController, proxyControl
   publicProxyRouter.get('/capacity/availabilities', proxyController.getAvailabilities);
   publicProxyRouter.put('/ticket/customer/:ticketId', proxyController.updateTicketCustomer);
   publicProxyRouter.get('/ticket', proxyController.getTicketByDocument);
-
+  publicProxyRouter.get('/cadastro-unico-verification', proxyController.cadastroUnicoVerification);
   router.use('/proxy', publicProxyRouter);
 
   return router;

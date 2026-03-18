@@ -55,6 +55,18 @@ export function createProxyService(env = process.env) {
         },
         correlationId: document
       });
-    }
+    },
+
+    async cadastroUnicoVerification({ channel, classification, document, documentType }) {
+  return apiGet(joinUrl(baseUrl, '/crm/bot/api/v1/cadastro-unico-verification'), {
+    params: {
+      channel,
+      classification,
+      document,
+      documentType
+    },
+    correlationId: document
+  });
+}
   };
 }
