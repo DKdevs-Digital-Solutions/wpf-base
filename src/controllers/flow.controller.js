@@ -5,12 +5,32 @@ function activeResponse(version) {
   return { version: version || '3.0', data: { status: 'active' } };
 }
 
+function extractFlowData(payload = {}) {
+  if (!payload || typeof payload !== 'object') return {};
+
+  if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  if (
+    payload.flow_action_payload &&
+    payload.flow_action_payload.data &&
+    typeof payload.flow_action_payload.data === 'object' &&
+    !Array.isArray(payload.flow_action_payload.data)
+  ) {
+    return payload.flow_action_payload.data;
+  }
+
+  return payload;
+}
+
 export function createFlowController({ privateKey, enqueueJob }) {
   return {
     handleFlowWebhook: async (req, res) => {
       try {
         const { decryptedBody, aesKeyBuffer, initialVectorBuffer } = decryptRequest(req.body, privateKey);
-        const { action, version, screen, data } = decryptedBody;
+        const { action, version, screen } = decryptedBody;
+        const incomingData = extractFlowData(decryptedBody.data || {});
 
         if (action === 'ping') {
           const encryptedResponse = encryptResponse(activeResponse(version), aesKeyBuffer, initialVectorBuffer);
@@ -18,9 +38,11 @@ export function createFlowController({ privateKey, enqueueJob }) {
         }
 
         if (action === 'INIT') {
+          console.log('INIT recebido:', JSON.stringify(decryptedBody, null, 2));
+
           const responsePayload = await handleFlowStep({
             screen: 'INIT',
-            data,
+            data: incomingData,
             version,
             enqueueJob
           });
@@ -31,9 +53,15 @@ export function createFlowController({ privateKey, enqueueJob }) {
 
         if (action === 'data_exchange') {
           console.log('Screen:', screen);
-          console.log('Payload recebido:', JSON.stringify(data, null, 2));
+          console.log('Payload recebido:', JSON.stringify(decryptedBody, null, 2));
 
-          const responsePayload = await handleFlowStep({ screen, data, version, enqueueJob });
+          const responsePayload = await handleFlowStep({
+            screen,
+            data: incomingData,
+            version,
+            enqueueJob
+          });
+
           const encryptedResponse = encryptResponse(responsePayload, aesKeyBuffer, initialVectorBuffer);
           return res.status(200).type('text/plain').send(encryptedResponse);
         }
