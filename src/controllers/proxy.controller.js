@@ -91,24 +91,27 @@ export function createProxyController({ proxyService }) {
 
     getTicketByDocument: async (req, res) => {
       const document = String(req.query.document || '').trim();
-      const documentType = String(req.query.documentType || req.query['document-type'] || '').trim();
 
-      if (!document || !documentType) {
+      if (!document) {
         return res.status(400).json({
           ok: false,
           error: 'validation_error',
-          message: 'document e documentType (ou document-type) são obrigatórios.'
+          message: 'document (CPF) é obrigatório.'
         });
       }
 
       try {
-        const data = await proxyService.getTicketByDocument({ document, documentType });
+        const data = await proxyService.getTicketByDocument({
+          document,
+          documentType: 'CPF'
+        });
         return res.status(200).json({ ok: true, data });
       } catch (error) {
         console.error('Erro ao consultar ticket por documento:', error.response?.data || error.message);
         const normalized = normalizeAxiosError(error);
         return res.status(normalized.status).json(normalized.body);
       }
-    }
+    },
+}
   };
 }

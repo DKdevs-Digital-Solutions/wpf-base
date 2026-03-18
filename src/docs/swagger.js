@@ -298,10 +298,10 @@ export function buildOpenApiSpec(_env = process.env) {
                 in: 'query',
                 required: false,
                 schema: { type: 'string', example: 'CPF' },
-                description: 'Tipo do documento. Também aceita document-type.'
+                description: 'Tipo do documento. Também aceita CPF (fixo no proxy).'
               },
               {
-                name: 'document-type',
+                name: 'CPF (fixo no proxy)',
                 in: 'query',
                 required: false,
                 schema: { type: 'string', example: 'CPF' },
