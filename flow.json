@@ -132,6 +132,95 @@
             }
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string"
+        },
+        "cpf": {
+          "type": "string"
+        },
+        "nome": {
+          "type": "string"
+        },
+        "family_code": {
+          "type": "string"
+        },
+        "telefone_principal": {
+          "type": "string"
+        },
+        "telefone_recado": {
+          "type": "string"
+        },
+        "nome_contato_recado": {
+          "type": "string"
+        },
+        "cep": {
+          "type": "string"
+        },
+        "logradouro": {
+          "type": "string"
+        },
+        "bairro": {
+          "type": "string"
+        },
+        "cidade": {
+          "type": "string"
+        },
+        "uf": {
+          "type": "string"
+        },
+        "complemento": {
+          "type": "string"
+        },
+        "ibge": {
+          "type": "string"
+        },
+        "numero": {
+          "type": "string"
+        },
+        "ponto_referencia": {
+          "type": "string"
+        },
+        "resumo_texto": {
+          "type": "string"
+        },
+        "finish_message": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "tipo_documento": {
+          "type": "string"
+        },
+        "doc_frente": {
+          "type": "string"
+        },
+        "doc_verso": {
+          "type": "string"
+        },
+        "selfie_com_doc": {
+          "type": "string"
+        },
+        "comprovante_residencia": {
+          "type": "string"
+        },
+        "fachada": {
+          "type": "string"
+        },
+        "tv_ligada": {
+          "type": "string"
+        }
       }
     },
     {
