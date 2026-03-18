@@ -1,22 +1,20 @@
 import crypto from 'crypto';
 import {
-  isValidCPF,
   isValidCepFormat,
   isValidPhone,
   normalizeCep,
   normalizeCpf,
   normalizePhone,
   requiredText,
-  validateCepEligibility,
-  validateCpfEligibility
+  validateCepEligibility
 } from '../lib/validations.js';
 
 function protocolFromData(data = {}) {
   return String(data.protocolo || data.protocol || data.protocolNumber || '').trim();
 }
 
-function screenResponse(screen, data = {}, version = '3.0') {
-  return { version, screen, data };
+function screenResponse(screen, data = {}) {
+  return { screen, data };
 }
 
 function finishResponse({
@@ -25,8 +23,7 @@ function finishResponse({
   code = 'flow_finished',
   reason = '',
   finishMessage = '',
-  jobId = '',
-  version = '3.0'
+  jobId = ''
 }) {
   return screenResponse('FINISH', {
     protocolo,
@@ -38,21 +35,20 @@ function finishResponse({
       finishMessage ||
       reason ||
       'Para que suas informações sejam processadas, é necessário tocar em Concluir.'
-  }, version);
+  });
 }
 
-export function failureResponse({ protocolo, code, reason, finishMessage = '', version = '3.0' }) {
+export function failureResponse({ protocolo, code, reason, finishMessage = '' }) {
   return finishResponse({
     protocolo,
     status: 'failure',
     code,
     reason,
-    finishMessage: finishMessage || reason,
-    version
+    finishMessage: finishMessage || reason
   });
 }
 
-export function queuedResponse({ protocolo, jobId, version = '3.0' }) {
+export function queuedResponse({ protocolo, jobId }) {
   return finishResponse({
     protocolo,
     status: 'queued',
@@ -60,19 +56,18 @@ export function queuedResponse({ protocolo, jobId, version = '3.0' }) {
     reason: 'Dados recebidos e enviados para processamento.',
     finishMessage:
       'Se estiver tudo certo, toque em Concluir para que suas informações sejam processadas.',
-    jobId: String(jobId || ''),
-    version
+    jobId: String(jobId || '')
   });
 }
 
-function successNext(screen, data = {}, extra = {}, version = '3.0') {
+function successNext(screen, data = {}, extra = {}) {
   return screenResponse(screen, {
     ...data,
     status: 'success',
     reason_code: '',
     reason: '',
     ...extra
-  }, version);
+  });
 }
 
 function normalizeMediaArray(value) {
@@ -155,139 +150,69 @@ function replaceAddressField(state, field, value) {
   }
 }
 
-export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob }) {
+export async function handleFlowStep({ screen, data, enqueueJob }) {
   const state = normalizeCommonState(data);
-  const next = (scr, st, extra = {}) => successNext(scr, st, extra, version);
-  const fail = (opts) => failureResponse({ ...opts, version });
 
   switch (screen) {
     case 'INIT':
-      return next('CPF_INPUT', state, { cpf_attempts: 0, cpf_feedback: '' });
+      return successNext('CPF_INPUT', state, { cpf_attempts: 0, cpf_feedback: '' });
 
     case 'CPF_INPUT': {
-      const nextAttempts = Number(state.cpf_attempts || 0) + 1;
-
-      console.log('[FLOW][CPF_INPUT] payload recebido:', JSON.stringify({
-        cpf: state.cpf,
-        telefone_principal: state.telefone_principal,
-        cpf_attempts: state.cpf_attempts
-      }, null, 2));
-
-      if (!isValidCPF(state.cpf)) {
-        if (nextAttempts >= 3) {
-          return fail({
-            protocolo: state.protocolo,
-            code: 'cpf_invalido_3_tentativas',
-            reason: 'CPF inválido após 3 tentativas.',
-            finishMessage:
-              'Não foi possível continuar porque o CPF foi informado incorretamente 3 vezes.'
-          });
-        }
-
-        const remaining = 3 - nextAttempts;
-        return next('CPF_INPUT', state, {
-          cpf_attempts: nextAttempts,
-          cpf_feedback:
-            remaining === 1
-              ? 'CPF inválido. Confira os números e tente novamente. Você ainda tem mais 1 tentativa.'
-              : 'CPF inválido. Confira os números e tente novamente.'
-        });
-      }
-
-      const eligibility = await validateCpfEligibility(
-        state.cpf,
-        state.protocolo,
-        state.telefone_principal
-      );
-
-      console.log('[FLOW][CPF_INPUT] validation result:', JSON.stringify(eligibility, null, 2));
-
-      if (!eligibility.eligible) {
-        return fail({
-          protocolo: eligibility.protocolo || state.protocolo,
-          code: 'nao_elegivel',
-          reason: 'CPF não elegível para continuar.'
-        });
-      }
-
-      if (!eligibility.extraPhaseEligible) {
-        return fail({
-          protocolo: eligibility.protocolo || state.protocolo,
-          code: 'sem_fase_extra',
-          reason: 'Não foi identificada fase extra para este cadastro.'
-        });
-      }
-
-      if (eligibility.hasInstallation) {
-        return fail({
-          protocolo: eligibility.protocolo || state.protocolo,
-          code: 'ja_possui_instalacao',
-          reason: `Já existe instalação vinculada a este cadastro${
-            eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''
-          }.`
-        });
-      }
-
-      if (eligibility.hasScheduleForCpf) {
-        return fail({
-          protocolo: eligibility.protocolo || state.protocolo,
-          code: 'ja_possui_agendamento_cpf',
-          reason: `Já existe agendamento para este CPF${
-            eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''
-          }.`
-        });
-      }
-
-      if (eligibility.hasScheduleForFamilyCode) {
-        return fail({
-          protocolo: eligibility.protocolo || state.protocolo,
-          code: 'ja_possui_agendamento_codigo_familia',
-          reason: `Já existe agendamento para este código família${
-            eligibility.protocoloExistente ? ` (${eligibility.protocoloExistente})` : ''
-          }.`
-        });
-      }
-
       const nextState = {
         ...state,
-        protocolo: String(eligibility.protocolo || state.protocolo || '').trim(),
-        nome: eligibility.nome || state.nome,
-        family_code: eligibility.familyCode || state.family_code,
-        cep: normalizeCep(eligibility.cep || state.cep),
-        logradouro: String(eligibility.logradouro || state.logradouro || '').trim(),
-        bairro: String(eligibility.bairro || state.bairro || '').trim(),
-        cidade: String(eligibility.cidade || state.cidade || '').trim(),
-        uf: String(eligibility.uf || state.uf || '').trim().toUpperCase(),
-        complemento:
-          eligibility.complemento == null
-            ? String(state.complemento || '')
-            : String(eligibility.complemento).trim(),
-        ibge: String(eligibility.ibge || state.ibge || '').trim(),
-        telefone_principal: normalizePhone(
-          eligibility.telefone_principal || state.telefone_principal
-        ),
+        protocolo: String(state.protocolo || '').trim(),
+        nome: String(state.nome || '').trim(),
+        family_code: String(state.family_code || '').trim(),
+        telefone_principal: normalizePhone(state.telefone_principal),
+        cep: normalizeCep(state.cep),
+        logradouro: String(state.logradouro || '').trim(),
+        bairro: String(state.bairro || '').trim(),
+        cidade: String(state.cidade || '').trim(),
+        uf: String(state.uf || '').trim().toUpperCase(),
+        complemento: state.complemento == null ? '' : String(state.complemento).trim(),
+        ibge: String(state.ibge || '').trim(),
         cpf_attempts: 0,
         cpf_feedback: ''
       };
 
-      const addressExists = hasBaseAddress(nextState);
-
-      console.log('[FLOW][CPF_INPUT] address decision inputs:', JSON.stringify({
+      console.log('[FLOW][CPF_INPUT] dados iniciais recebidos:', JSON.stringify({
+        protocolo: nextState.protocolo,
+        cpf: nextState.cpf,
+        nome: nextState.nome,
+        telefone_principal: nextState.telefone_principal,
         cep: nextState.cep,
         logradouro: nextState.logradouro,
         bairro: nextState.bairro,
         cidade: nextState.cidade,
         uf: nextState.uf,
         complemento: nextState.complemento,
+        ibge: nextState.ibge
+      }, null, 2));
+
+      if (!nextState.cpf) {
+        return failureResponse({
+          protocolo: nextState.protocolo,
+          code: 'cpf_nao_informado',
+          reason: 'CPF não informado para iniciar o fluxo.'
+        });
+      }
+
+      if (!isValidPhone(nextState.telefone_principal)) {
+        return failureResponse({
+          protocolo: nextState.protocolo,
+          code: 'telefone_principal_invalido',
+          reason: 'Telefone principal inválido para iniciar o fluxo.'
+        });
+      }
+
+      const addressExists = hasBaseAddress(nextState);
+
+      console.log('[FLOW][CPF_INPUT] decisão de endereço:', JSON.stringify({
         hasBaseAddress: addressExists,
         missingAddressFields: missingAddressDetails(nextState)
       }, null, 2));
 
-      const nextScreen = addressExists ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT';
-
-      console.log('[FLOW][CPF_INPUT] nextScreen selected:', nextScreen);
-
-      return next(nextScreen, nextState);
+      return successNext(addressExists ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', nextState);
     }
 
     case 'CONFIRMA_ENDERECO_ONE': {
@@ -310,14 +235,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
           : 'ENDERECO_COMPLETO';
 
         console.log('[FLOW][CONFIRMA_ENDERECO_ONE] nextScreen selected:', nextScreen);
-        return next(nextScreen, state);
+        return successNext(nextScreen, state);
       }
 
       if (decisao === 'corrigir') {
-        return next('ESCOLHER_CAMPO_ENDERECO', state);
+        return successNext('ESCOLHER_CAMPO_ENDERECO', state);
       }
 
-      return fail({
+      return failureResponse({
         protocolo: state.protocolo,
         code: 'confirmacao_endereco_invalida',
         reason: 'Escolha uma opção para continuar.'
@@ -336,7 +261,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }, null, 2));
 
       if (!logradouro) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'logradouro_obrigatorio',
           reason: 'Logradouro é obrigatório.'
@@ -344,7 +269,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }
 
       if (!bairro) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'bairro_obrigatorio',
           reason: 'Bairro é obrigatório.'
@@ -352,14 +277,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }
 
       if (!complemento) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'complemento_obrigatorio',
           reason: 'Complemento é obrigatório.'
         });
       }
 
-      return next('ENDERECO_COMPLETO', {
+      return successNext('ENDERECO_COMPLETO', {
         ...state,
         logradouro,
         bairro,
@@ -372,7 +297,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       const camposPermitidos = ['cep', 'logradouro', 'bairro', 'cidade', 'uf', 'complemento'];
 
       if (!camposPermitidos.includes(campo)) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'campo_endereco_invalido',
           reason: 'Selecione qual campo do endereço deseja alterar.'
@@ -380,10 +305,10 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }
 
       if (campo === 'cep') {
-        return next('CEP_REINPUT', { ...state, campo_endereco: campo });
+        return successNext('CEP_REINPUT', { ...state, campo_endereco: campo });
       }
 
-      return next('EDITAR_CAMPO_ENDERECO', { ...state, campo_endereco: campo });
+      return successNext('EDITAR_CAMPO_ENDERECO', { ...state, campo_endereco: campo });
     }
 
     case 'EDITAR_CAMPO_ENDERECO': {
@@ -391,7 +316,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       const valor = requiredText(data.valor_campo_endereco, 120);
 
       if (!campo || !['logradouro', 'bairro', 'cidade', 'uf', 'complemento'].includes(campo)) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'campo_endereco_invalido',
           reason: 'Campo do endereço inválido para edição.'
@@ -399,7 +324,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }
 
       if (!valor) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'valor_campo_endereco_obrigatorio',
           reason: 'Informe o novo valor do campo selecionado.'
@@ -408,14 +333,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
 
       const updated = replaceAddressField(state, campo, valor);
       if (!updated) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'falha_edicao_endereco',
           reason: 'Não foi possível atualizar o campo do endereço.'
         });
       }
 
-      return next('CONFIRMA_ENDERECO_AJUSTADO', updated);
+      return successNext('CONFIRMA_ENDERECO_AJUSTADO', updated);
     }
 
     case 'CONFIRMA_ENDERECO_AJUSTADO': {
@@ -438,18 +363,18 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
           : 'ENDERECO_COMPLETO';
 
         console.log('[FLOW][CONFIRMA_ENDERECO_AJUSTADO] nextScreen selected:', nextScreen);
-        return next(nextScreen, state);
+        return successNext(nextScreen, state);
       }
 
       if (decisao === 'encerrar') {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'ajuste_endereco_externo',
           reason: 'Endereço precisa de ajuste externo.'
         });
       }
 
-      return fail({
+      return failureResponse({
         protocolo: state.protocolo,
         code: 'confirmacao_endereco_invalida',
         reason: 'Escolha uma opção para continuar.'
@@ -463,7 +388,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }, null, 2));
 
       if (!isValidCepFormat(state.cep)) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'cep_invalido',
           reason: 'CEP inválido. Informe os 8 números do CEP.'
@@ -475,14 +400,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       console.log('[FLOW][CEP_REINPUT] cep validation:', JSON.stringify(cepValidation, null, 2));
 
       if (!cepValidation.ok) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: cepValidation.code,
           reason: cepValidation.reason
         });
       }
 
-      return next('CONFIRMA_ENDERECO_TWO', {
+      return successNext('CONFIRMA_ENDERECO_TWO', {
         ...state,
         cep: normalizeCep(cepValidation.address?.cep || state.cep),
         logradouro: String(cepValidation.address?.logradouro || state.logradouro || '').trim(),
@@ -517,18 +442,18 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
           : 'ENDERECO_COMPLETO';
 
         console.log('[FLOW][CONFIRMA_ENDERECO_TWO] nextScreen selected:', nextScreen);
-        return next(nextScreen, state);
+        return successNext(nextScreen, state);
       }
 
       if (decisao === 'encerrar') {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'ajuste_endereco_externo',
           reason: 'Endereço precisa de ajuste externo.'
         });
       }
 
-      return fail({
+      return failureResponse({
         protocolo: state.protocolo,
         code: 'confirmacao_endereco_invalida',
         reason: 'Escolha uma opção para continuar.'
@@ -540,7 +465,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       const pontoReferencia = requiredText(data.ponto_referencia, 180);
 
       if (!numero) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'numero_obrigatorio',
           reason: 'Número da residência é obrigatório.'
@@ -548,14 +473,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }
 
       if (!pontoReferencia) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'ponto_referencia_obrigatorio',
           reason: 'Ponto de referência é obrigatório.'
         });
       }
 
-      return next('CONTATOS', {
+      return successNext('CONTATOS', {
         ...state,
         numero,
         ponto_referencia: pontoReferencia
@@ -571,7 +496,7 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       );
 
       if (!isValidPhone(telefonePrincipal)) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'telefone_principal_invalido',
           reason: `Telefone principal inválido: ${data.telefone_principal || state.telefone_principal}`
@@ -579,14 +504,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       }
 
       if (telefoneRecado && !isValidPhone(telefoneRecado)) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'telefone_recado_invalido',
           reason: `Telefone para recado inválido: ${data.telefone_recado || state.telefone_recado}`
         });
       }
 
-      return next('TIPO_DOCUMENTO', {
+      return successNext('TIPO_DOCUMENTO', {
         ...state,
         telefone_principal: telefonePrincipal,
         telefone_recado: telefoneRecado,
@@ -598,27 +523,27 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
       const tipo = String(data.tipo_documento || '').toUpperCase();
 
       if (!['RG', 'CNH'].includes(tipo)) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'documento_nao_informado',
           reason: 'É necessário selecionar RG ou CNH para continuar.'
         });
       }
 
-      return next('DOC_FRENTE', { ...state, tipo_documento: tipo });
+      return successNext('DOC_FRENTE', { ...state, tipo_documento: tipo });
     }
 
     case 'DOC_FRENTE': {
       const docFrente = normalizeMediaArray(data.doc_frente);
       if (!docFrente.length) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'doc_frente_obrigatorio',
           reason: 'A foto da frente do documento é obrigatória.'
         });
       }
 
-      return next(state.tipo_documento === 'CNH' ? 'SELFIE_COM_DOC' : 'DOC_VERSO', {
+      return successNext(state.tipo_documento === 'CNH' ? 'SELFIE_COM_DOC' : 'DOC_VERSO', {
         ...state,
         doc_frente: docFrente
       });
@@ -627,59 +552,59 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
     case 'DOC_VERSO': {
       const docVerso = normalizeMediaArray(data.doc_verso);
       if (!docVerso.length) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'doc_verso_obrigatorio',
           reason: 'A foto do verso do documento é obrigatória.'
         });
       }
 
-      return next('SELFIE_COM_DOC', { ...state, doc_verso: docVerso });
+      return successNext('SELFIE_COM_DOC', { ...state, doc_verso: docVerso });
     }
 
     case 'SELFIE_COM_DOC': {
       const selfie = normalizeMediaArray(data.selfie_com_doc);
       if (!selfie.length) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'selfie_com_doc_obrigatoria',
           reason: 'A selfie com documento é obrigatória.'
         });
       }
 
-      return next('COMPROVANTE', { ...state, selfie_com_doc: selfie });
+      return successNext('COMPROVANTE', { ...state, selfie_com_doc: selfie });
     }
 
     case 'COMPROVANTE': {
       const comprovante = normalizeMediaArray(data.comprovante_residencia);
       if (!comprovante.length) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'comprovante_obrigatorio',
           reason: 'O comprovante de residência é obrigatório.'
         });
       }
 
-      return next('FACHADA', { ...state, comprovante_residencia: comprovante });
+      return successNext('FACHADA', { ...state, comprovante_residencia: comprovante });
     }
 
     case 'FACHADA': {
       const fachada = normalizeMediaArray(data.fachada);
       if (!fachada.length) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'fachada_obrigatoria',
           reason: 'A foto da fachada é obrigatória.'
         });
       }
 
-      return next('TV_LIGADA', { ...state, fachada });
+      return successNext('TV_LIGADA', { ...state, fachada });
     }
 
     case 'TV_LIGADA': {
       const tvLigada = normalizeMediaArray(data.tv_ligada);
       if (!tvLigada.length) {
-        return fail({
+        return failureResponse({
           protocolo: state.protocolo,
           code: 'tv_ligada_obrigatoria',
           reason: 'A foto da TV ligada é obrigatória.'
@@ -697,11 +622,14 @@ export async function handleFlowStep({ screen, data, version = '3.0', enqueueJob
         data: finalState
       });
 
-      return queuedResponse({ protocolo: finalState.protocolo, jobId: job.id, version });
+      return queuedResponse({
+        protocolo: finalState.protocolo,
+        jobId: job.id
+      });
     }
 
     default:
-      return fail({
+      return failureResponse({
         protocolo: state.protocolo,
         code: 'screen_not_supported',
         reason: `Screen ${screen} não suportada no backend.`
