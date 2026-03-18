@@ -322,7 +322,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
     case 'COMPLEMENTAR_ENDERECO_CADASTRAL': {
       const logradouro = requiredText(data.logradouro || state.logradouro, 120);
       const bairro = requiredText(data.bairro || state.bairro, 120);
-      const complemento = requiredText(data.complemento, 120);
+      const complemento = requiredText(data.complemento || state.complemento, 120);
 
       console.log('[FLOW][COMPLEMENTAR_ENDERECO_CADASTRAL] payload:', JSON.stringify({
         logradouro,
@@ -479,13 +479,16 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
 
       return successNext('CONFIRMA_ENDERECO_TWO', {
         ...state,
-        cep: cepValidation.address.cep,
-        logradouro: state.logradouro,
-        bairro: state.bairro,
-        cidade: state.cidade,
-        uf: state.uf,
-        complemento: state.complemento,
-        ibge: state.ibge
+        cep: normalizeCep(cepValidation.address?.cep || state.cep),
+        logradouro: String(cepValidation.address?.logradouro || state.logradouro || '').trim(),
+        bairro: String(cepValidation.address?.bairro || state.bairro || '').trim(),
+        cidade: String(cepValidation.address?.cidade || state.cidade || '').trim(),
+        uf: String(cepValidation.address?.uf || state.uf || '').trim().toUpperCase(),
+        complemento:
+          cepValidation.address?.complemento == null
+            ? String(state.complemento || '')
+            : String(cepValidation.address.complemento).trim(),
+        ibge: String(cepValidation.address?.ibge || state.ibge || '').trim()
       });
     }
 
@@ -555,14 +558,18 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
     }
 
     case 'CONTATOS': {
-      const telefonePrincipal = normalizePhone(state.telefone_principal);
-      const telefoneRecado = normalizePhone(state.telefone_recado);
+      const telefonePrincipal = normalizePhone(data.telefone_principal || state.telefone_principal);
+      const telefoneRecado = normalizePhone(data.telefone_recado || state.telefone_recado);
+      const nomeContatoRecado = requiredText(
+        data.nome_contato_recado || state.nome_contato_recado,
+        120
+      );
 
       if (!isValidPhone(telefonePrincipal)) {
         return failureResponse({
           protocolo: state.protocolo,
           code: 'telefone_principal_invalido',
-          reason: `Telefone principal inválido: ${state.telefone_principal}`
+          reason: `Telefone principal inválido: ${data.telefone_principal || state.telefone_principal}`
         });
       }
 
@@ -570,14 +577,15 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         return failureResponse({
           protocolo: state.protocolo,
           code: 'telefone_recado_invalido',
-          reason: `Telefone para recado inválido: ${state.telefone_recado}`
+          reason: `Telefone para recado inválido: ${data.telefone_recado || state.telefone_recado}`
         });
       }
 
       return successNext('TIPO_DOCUMENTO', {
         ...state,
         telefone_principal: telefonePrincipal,
-        telefone_recado: telefoneRecado
+        telefone_recado: telefoneRecado,
+        nome_contato_recado: nomeContatoRecado
       });
     }
 
