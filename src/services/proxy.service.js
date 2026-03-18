@@ -58,7 +58,7 @@ export function createProxyService(env = process.env) {
     },
 
     async cadastroUnicoVerification({ channel, classification, document, documentType }) {
-  return apiGet(joinUrl(baseUrl, '/crm/bot/api/v1/cadastro-unico-verification'), {
+  return apiGet(joinUrl(baseUrl, '/cadastro-unico-verification'), {
     params: {
       channel,
       classification,
