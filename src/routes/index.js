@@ -48,7 +48,7 @@ export function createAppRouter({ flowController, statusController, proxyControl
     next();
   });
 
-  // FLOW ENDPOINT
+  // ✅ ROTAS PÚBLICAS (sem API key)
   router.post('/whatsapp/flows', (req, res, next) => {
     console.log('[FLOW ENDPOINT HIT]', {
       method: req.method,
@@ -64,17 +64,18 @@ export function createAppRouter({ flowController, statusController, proxyControl
     next();
   }, statusController.health);
 
-  router.get('/status/:protocolNumber', (req, res, next) => {
+  // 🔒 ROTAS PROTEGIDAS (com API key)
+  router.get('/status/:protocolNumber', requireApiKey, (req, res, next) => {
     console.log('[STATUS PROTOCOL]', req.params.protocolNumber);
     next();
   }, statusController.getProtocolStatus);
 
-  router.get('/status/job/:jobId', (req, res, next) => {
+  router.get('/status/job/:jobId', requireApiKey, (req, res, next) => {
     console.log('[STATUS JOB]', req.params.jobId);
     next();
   }, statusController.getJobStatus);
 
-  router.get('/openapi.json', (req, res, next) => {
+  router.get('/openapi.json', requireApiKey, (req, res, next) => {
     console.log('[OPENAPI]');
     next();
   }, docsController.openApiJson);
