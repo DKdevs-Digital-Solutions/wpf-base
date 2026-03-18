@@ -13,6 +13,7 @@
       "FINISH"
     ],
     "CONFIRMA_ENDERECO_ONE": [
+      "COMPLEMENTAR_ENDERECO_CADASTRAL",
       "ENDERECO_COMPLETO",
       "ESCOLHER_CAMPO_ENDERECO",
       "FINISH"
@@ -75,6 +76,10 @@
       "FINISH"
     ],
     "CONFIRMA_ENDERECO_AJUSTADO": [
+      "ENDERECO_COMPLETO",
+      "FINISH"
+    ],
+    "COMPLEMENTAR_ENDERECO_CADASTRAL": [
       "ENDERECO_COMPLETO",
       "FINISH"
     ]
@@ -259,6 +264,76 @@
                     "uf": "${data.uf}",
                     "ibge": "${data.ibge}",
                     "decisao_endereco": "${form.decisao_endereco}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "COMPLEMENTAR_ENDERECO_CADASTRAL",
+      "title": "Completar endereço",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextBody",
+            "text": "Precisamos completar alguns dados do endereço encontrado."
+          },
+          {
+            "type": "TextBody",
+            "text": "CEP: ${data.cep}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+          },
+          {
+            "type": "Form",
+            "name": "form_complementar_endereco_cadastral",
+            "children": [
+              {
+                "type": "TextInput",
+                "name": "logradouro",
+                "label": "Logradouro",
+                "required": true,
+                "init-value": "${data.logradouro}"
+              },
+              {
+                "type": "TextInput",
+                "name": "bairro",
+                "label": "Bairro",
+                "required": true,
+                "init-value": "${data.bairro}"
+              },
+              {
+                "type": "TextInput",
+                "name": "complemento",
+                "label": "Complemento",
+                "required": true,
+                "init-value": "${data.complemento}"
+              },
+              {
+                "type": "Footer",
+                "label": "Continuar",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "nome_contato_recado": "${data.nome_contato_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${form.logradouro}",
+                    "bairro": "${form.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}",
+                    "numero": "${data.numero}",
+                    "complemento": "${form.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}"
                   }
                 }
               }

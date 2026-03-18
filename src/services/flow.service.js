@@ -127,7 +127,11 @@ function buildResumoTexto(state = {}) {
 
 
 function initialAddressAvailable(state) {
-  return Boolean(state.cep && state.logradouro && state.bairro && state.cidade && state.uf);
+  return Boolean(state.cep && state.cidade && state.uf && (state.logradouro || state.bairro || state.numero || state.complemento || state.ponto_referencia));
+}
+
+function needsAddressDetails(state) {
+  return Boolean(!state.logradouro || !state.bairro || !state.complemento);
 }
 
 function replaceAddressField(state, field, value) {
@@ -229,14 +233,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      return successNext(initialAddressAvailable({
-        ...state,
-        cep: normalizeCep(eligibility.cep || state.cep),
-        logradouro: String(eligibility.logradouro || eligibility.street || state.logradouro || ''),
-        bairro: String(eligibility.bairro || eligibility.neighborhood || state.bairro || ''),
-        cidade: String(eligibility.cidade || eligibility.city || state.cidade || ''),
-        uf: String(eligibility.uf || eligibility.state || state.uf || '')
-      }) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', {
+      const nextState = {
         ...state,
         protocolo: String(eligibility.protocolo || state.protocolo || '').trim(),
         nome: eligibility.nome || state.nome,
@@ -247,6 +244,9 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         cidade: String(eligibility.cidade || eligibility.city || state.cidade || ''),
         uf: String(eligibility.uf || eligibility.state || state.uf || ''),
         ibge: String(eligibility.ibge || state.ibge || ''),
+        numero: String(eligibility.numero || state.numero || ''),
+        complemento: String(eligibility.complemento || state.complemento || ''),
+        ponto_referencia: String(eligibility.ponto_referencia || state.ponto_referencia || ''),
         telefone_principal: normalizePhone(
           state.telefone_principal ||
             eligibility.telefone_principal ||
@@ -255,7 +255,9 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         ),
         cpf_attempts: 0,
         cpf_feedback: ''
-      });
+      };
+
+      return successNext(initialAddressAvailable(nextState) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', nextState);
     }
 
     case 'CONTATOS': {
@@ -289,7 +291,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       const decisao = String(data.decisao_endereco || '').toLowerCase();
 
       if (decisao === 'confirmar') {
-        return successNext('ENDERECO_COMPLETO', state);
+        return successNext(needsAddressDetails(state) ? 'COMPLEMENTAR_ENDERECO_CADASTRAL' : 'ENDERECO_COMPLETO', state);
       }
 
       if (decisao === 'corrigir') {
@@ -373,6 +375,43 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         protocolo: state.protocolo,
         code: 'confirmacao_endereco_invalida',
         reason: 'Escolha uma opção para continuar.'
+      });
+    }
+
+    case 'COMPLEMENTAR_ENDERECO_CADASTRAL': {
+      const logradouro = requiredText(data.logradouro || state.logradouro, 120);
+      const bairro = requiredText(data.bairro || state.bairro, 120);
+      const complemento = requiredText(data.complemento || state.complemento, 120);
+
+      if (!logradouro) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'logradouro_obrigatorio',
+          reason: 'Informe o logradouro para continuar.'
+        });
+      }
+
+      if (!bairro) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'bairro_obrigatorio',
+          reason: 'Informe o bairro para continuar.'
+        });
+      }
+
+      if (!complemento) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'complemento_obrigatorio',
+          reason: 'Informe o complemento do endereço para continuar.'
+        });
+      }
+
+      return successNext('ENDERECO_COMPLETO', {
+        ...state,
+        logradouro,
+        bairro,
+        complemento
       });
     }
 

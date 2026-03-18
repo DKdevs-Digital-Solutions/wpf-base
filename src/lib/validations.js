@@ -116,6 +116,7 @@ function normalizeCadastroUnicoPayload(data = {}) {
   const cadUnico = customer.cadUnico || data.cadUnico || {};
   const contacts = Array.isArray(customer.contacts) ? customer.contacts : [];
   const primaryContact = contacts.find((contact) => String(contact?.type || '').toUpperCase() === 'PHONE') || contacts[0] || {};
+  const hasAddressRecord = Object.values(customerAddress).some((value) => value !== undefined && value !== null && String(value).trim() !== '');
 
   return {
     result: typeof data.result === 'boolean' ? data.result : undefined,
@@ -127,23 +128,24 @@ function normalizeCadastroUnicoPayload(data = {}) {
     familyCode: firstValue(cadUnico.familyCode, data.familyCode, data.family_code),
     family_code: firstValue(cadUnico.familyCode, data.familyCode, data.family_code),
     nis: firstValue(customer.nis, cadUnico.nis, data.nis),
-    cep: firstValue(customerAddress.postalCode, cadUnico.postalCode, data.cep),
-    postalCode: firstValue(customerAddress.postalCode, cadUnico.postalCode, data.cep),
-    logradouro: firstValue(customerAddress.streetName, customerAddress.street, cadUnico.publicPlace, data.logradouro),
-    street: firstValue(customerAddress.streetName, customerAddress.street, cadUnico.publicPlace, data.street),
+    cep: firstValue(customerAddress.postalCode, data.cep),
+    postalCode: firstValue(customerAddress.postalCode, data.cep),
+    logradouro: firstValue(customerAddress.streetName, customerAddress.street, data.logradouro),
+    street: firstValue(customerAddress.streetName, customerAddress.street, data.street),
     bairro: firstValue(customerAddress.neighborhood, data.bairro),
     neighborhood: firstValue(customerAddress.neighborhood, data.neighborhood),
-    cidade: firstValue(customerAddress.city, cadUnico.city, data.cidade),
-    city: firstValue(customerAddress.city, cadUnico.city, data.city),
-    uf: firstValue(customerAddress.state, cadUnico.state, data.uf),
-    state: firstValue(customerAddress.state, cadUnico.state, data.state),
+    cidade: firstValue(customerAddress.city, data.cidade),
+    city: firstValue(customerAddress.city, data.city),
+    uf: firstValue(customerAddress.state, data.uf),
+    state: firstValue(customerAddress.state, data.state),
     ibge: firstValue(cadUnico.ibgeCode, data.ibge),
     telefone_principal: firstValue(primaryContact.value, customer.phone, data.telefone_principal),
     telefone: firstValue(primaryContact.value, customer.phone, data.telefone),
     numero: firstValue(customerAddress.number, data.numero),
-    complemento: firstValue(customerAddress.complement, cadUnico.complement, data.complemento),
+    complemento: firstValue(customerAddress.complement, data.complemento),
     ponto_referencia: firstValue(customerAddress.reference, data.ponto_referencia),
-    message: firstValue(data.message)
+    message: firstValue(data.message),
+    hasAddressRecord
   };
 }
 
