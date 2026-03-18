@@ -96,10 +96,48 @@ function successNext(screen, data = {}, extra = {}) {
   return screenResponse(screen, projectDataForScreen(screen, { ...data, ...extra }));
 }
 
+function normalizeMediaArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
 function normalizeMediaValue(value) {
   if (Array.isArray(value)) return value;
   if (value == null || value === '') return '';
   return String(value);
+}
+
+function initialScreenPayload(state = {}, raw = {}) {
+  return {
+    protocolo: String(state.protocolo || ''),
+    cpf: String(state.cpf || ''),
+    nome: String(state.nome || ''),
+    family_code: String(state.family_code || ''),
+    telefone_principal: String(state.telefone_principal || ''),
+    telefone_recado: String(state.telefone_recado || ''),
+    nome_contato_recado: String(state.nome_contato_recado || ''),
+    cep: String(state.cep || ''),
+    logradouro: String(state.logradouro || ''),
+    bairro: String(state.bairro || ''),
+    cidade: String(state.cidade || ''),
+    uf: String(state.uf || ''),
+    complemento: String(state.complemento || ''),
+    ibge: String(state.ibge || ''),
+    numero: String(state.numero || ''),
+    ponto_referencia: String(state.ponto_referencia || ''),
+    resumo_texto: String(raw.resumo_texto || state.resumo_texto || ''),
+    finish_message: String(raw.finish_message || ''),
+    status: String(raw.status || ''),
+    reason_code: String(raw.reason_code || ''),
+    reason: String(raw.reason || ''),
+    job_id: String(raw.job_id || ''),
+    tipo_documento: String(raw.tipo_documento || state.tipo_documento || ''),
+    doc_frente: '',
+    doc_verso: '',
+    selfie_com_doc: '',
+    comprovante_residencia: '',
+    fachada: '',
+    tv_ligada: ''
+  };
 }
 
 function normalizeCommonState(data = {}) {
@@ -239,37 +277,8 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
 
   switch (screen) {
     case 'INIT':
-      return screenResponse('CPF_INPUT', {
-        protocolo: String(state.protocolo || ''),
-        cpf: String(state.cpf || ''),
-        nome: String(state.nome || ''),
-        family_code: String(state.family_code || ''),
-        telefone_principal: String(state.telefone_principal || ''),
-        telefone_recado: String(state.telefone_recado || ''),
-        nome_contato_recado: String(state.nome_contato_recado || ''),
-        cep: String(state.cep || ''),
-        logradouro: String(state.logradouro || ''),
-        bairro: String(state.bairro || ''),
-        cidade: String(state.cidade || ''),
-        uf: String(state.uf || ''),
-        complemento: String(state.complemento || ''),
-        ibge: String(state.ibge || ''),
-        numero: String(state.numero || ''),
-        ponto_referencia: String(state.ponto_referencia || ''),
-        resumo_texto: String(state.resumo_texto || ''),
-        finish_message: String(data?.finish_message || ''),
-        status: String(data?.status || ''),
-        reason_code: String(data?.reason_code || ''),
-        reason: String(data?.reason || ''),
-        job_id: String(data?.job_id || ''),
-        tipo_documento: String(data?.tipo_documento || ''),
-        doc_frente: typeof state.doc_frente === 'string' ? state.doc_frente : '',
-        doc_verso: typeof state.doc_verso === 'string' ? state.doc_verso : '',
-        selfie_com_doc: typeof state.selfie_com_doc === 'string' ? state.selfie_com_doc : '',
-        comprovante_residencia: typeof state.comprovante_residencia === 'string' ? state.comprovante_residencia : '',
-        fachada: typeof state.fachada === 'string' ? state.fachada : '',
-        tv_ligada: typeof state.tv_ligada === 'string' ? state.tv_ligada : ''
-      });
+      console.log('Estado inicial normalizado:', JSON.stringify(state, null, 2));
+      return screenResponse('CPF_INPUT', initialScreenPayload(state, data));
 
     case 'CPF_INPUT': {
       const nextState = {
