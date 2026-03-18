@@ -5,8 +5,14 @@ function cleanUrl(url = '') {
   return String(url || '').replace(/\/+$/g, '');
 }
 
-export function envUrl(name) {
-  return cleanUrl(process.env[name] || '');
+export function envUrl(name, fallback = '') {
+  return cleanUrl(process.env[name] || fallback);
+}
+
+export function crmUrl(path = '') {
+  const baseUrl = envUrl('CRM_BASE_URL');
+  const cleanPath = String(path || '').replace(/^\/+/, '');
+  return baseUrl && cleanPath ? `${baseUrl}/${cleanPath}` : baseUrl;
 }
 
 function env(name, fallback = '') {

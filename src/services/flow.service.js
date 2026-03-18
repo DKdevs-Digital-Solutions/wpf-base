@@ -104,9 +104,27 @@ function normalizeCommonState(data = {}) {
     selfie_com_doc: normalizeMediaArray(data.selfie_com_doc),
     comprovante_residencia: normalizeMediaArray(data.comprovante_residencia || data.comprovante),
     fachada: normalizeMediaArray(data.fachada),
-    tv_ligada: normalizeMediaArray(data.tv_ligada)
+    tv_ligada: normalizeMediaArray(data.tv_ligada),
+    resumo_texto: String(data.resumo_texto || '')
   };
 }
+
+function buildResumoTexto(state = {}) {
+  return [
+    `Protocolo: ${state.protocolo || '-'}`,
+    `Nome: ${state.nome || '-'}`,
+    `CPF: ${state.cpf || '-'}`,
+    `Telefone principal: ${state.telefone_principal || '-'}`,
+    `Telefone de recado: ${state.telefone_recado || '-'}`,
+    `Contato de recado: ${state.nome_contato_recado || '-'}`,
+    `Endereço: ${state.logradouro || '-'}, ${state.numero || '-'}${state.complemento ? `, ${state.complemento}` : ''} - ${state.bairro || '-'}`,
+    `Cidade/UF: ${state.cidade || '-'} / ${state.uf || '-'}`,
+    `CEP: ${state.cep || '-'}`,
+    `Ponto de referência: ${state.ponto_referencia || '-'}`,
+    `Tipo de documento: ${state.tipo_documento || '-'}`
+  ].join('\n');
+}
+
 
 function initialAddressAvailable(state) {
   return Boolean(state.cep && state.logradouro && state.bairro && state.cidade && state.uf);
@@ -211,7 +229,14 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      return successNext('CONTATOS', {
+      return successNext(initialAddressAvailable({
+        ...state,
+        cep: normalizeCep(eligibility.cep || state.cep),
+        logradouro: String(eligibility.logradouro || eligibility.street || state.logradouro || ''),
+        bairro: String(eligibility.bairro || eligibility.neighborhood || state.bairro || ''),
+        cidade: String(eligibility.cidade || eligibility.city || state.cidade || ''),
+        uf: String(eligibility.uf || eligibility.state || state.uf || '')
+      }) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', {
         ...state,
         protocolo: String(eligibility.protocolo || state.protocolo || '').trim(),
         nome: eligibility.nome || state.nome,
@@ -253,7 +278,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      return successNext(initialAddressAvailable(state) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', {
+      return successNext('TIPO_DOCUMENTO', {
         ...state,
         telefone_principal: telefonePrincipal,
         telefone_recado: telefoneRecado
@@ -424,7 +449,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      return successNext('TIPO_DOCUMENTO', {
+      return successNext('CONTATOS', {
         ...state,
         numero,
         complemento,
@@ -524,9 +549,42 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
+      return successNext('RESUMO_FINAL', {
+        ...state,
+        tv_ligada: tvLigada,
+        resumo_texto: buildResumoTexto({ ...state, tv_ligada: tvLigada })
+      });
+    }
+
+    case 'RESUMO_FINAL': {
+      const decisao = String(data.decisao_resumo || '').toLowerCase();
+
+      if (decisao === 'confirmar') {
+        return successNext('CONFIRMACAO_FINAL', {
+          ...state,
+          resumo_texto: state.resumo_texto || buildResumoTexto(state)
+        });
+      }
+
+      if (decisao === 'encerrar') {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'ajuste_externo_resumo',
+          reason: 'Solicitação encerrada para ajuste externo.'
+        });
+      }
+
+      return failureResponse({
+        protocolo: state.protocolo,
+        code: 'decisao_resumo_invalida',
+        reason: 'Escolha uma opção para continuar.'
+      });
+    }
+
+    case 'CONFIRMACAO_FINAL': {
       const finalState = {
         ...state,
-        tv_ligada: tvLigada
+        resumo_texto: state.resumo_texto || buildResumoTexto(state)
       };
 
       const job = await enqueueJob({

@@ -4,16 +4,17 @@
   "routing_model": {
     "CPF_INPUT": [
       "CPF_INPUT",
-      "CONTATOS",
+      "CONFIRMA_ENDERECO_ONE",
+      "CEP_REINPUT",
       "FINISH"
     ],
     "CONTATOS": [
-      "CONFIRMA_ENDERECO_ONE",
+      "TIPO_DOCUMENTO",
       "FINISH"
     ],
     "CONFIRMA_ENDERECO_ONE": [
       "ENDERECO_COMPLETO",
-      "CEP_REINPUT",
+      "ESCOLHER_CAMPO_ENDERECO",
       "FINISH"
     ],
     "CEP_REINPUT": [
@@ -25,7 +26,7 @@
       "FINISH"
     ],
     "ENDERECO_COMPLETO": [
-      "TIPO_DOCUMENTO",
+      "CONTATOS",
       "FINISH"
     ],
     "TIPO_DOCUMENTO": [
@@ -62,6 +63,19 @@
       "FINISH"
     ],
     "CONFIRMACAO_FINAL": [
+      "FINISH"
+    ],
+    "ESCOLHER_CAMPO_ENDERECO": [
+      "CEP_REINPUT",
+      "EDITAR_CAMPO_ENDERECO",
+      "FINISH"
+    ],
+    "EDITAR_CAMPO_ENDERECO": [
+      "CONFIRMA_ENDERECO_AJUSTADO",
+      "FINISH"
+    ],
+    "CONFIRMA_ENDERECO_AJUSTADO": [
+      "ENDERECO_COMPLETO",
       "FINISH"
     ]
   },
@@ -102,7 +116,21 @@
                     "cpf": "${form.cpf}",
                     "cpf_attempts": "${data.cpf_attempts}",
                     "cpf_feedback": "${data.cpf_feedback}",
-                    "telefone_principal": "${data.telefone_principal}"
+                    "telefone_principal": "${data.telefone_principal}",
+                    "protocolo": "${data.protocolo}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "nome_contato_recado": "${data.nome_contato_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}",
+                    "numero": "${data.numero}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}"
                   }
                 }
               }
@@ -240,6 +268,200 @@
       }
     },
     {
+      "id": "ESCOLHER_CAMPO_ENDERECO",
+      "title": "Ajustar endereço",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextBody",
+            "text": "Escolha qual campo do endereço você deseja ajustar."
+          },
+          {
+            "type": "Form",
+            "name": "form_escolher_campo_endereco",
+            "children": [
+              {
+                "type": "Dropdown",
+                "name": "campo_endereco",
+                "label": "Campo do endereço",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "cep",
+                    "title": "CEP"
+                  },
+                  {
+                    "id": "logradouro",
+                    "title": "Logradouro"
+                  },
+                  {
+                    "id": "bairro",
+                    "title": "Bairro"
+                  },
+                  {
+                    "id": "cidade",
+                    "title": "Cidade"
+                  },
+                  {
+                    "id": "uf",
+                    "title": "UF"
+                  }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Continuar",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "nome_contato_recado": "${data.nome_contato_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}",
+                    "numero": "${data.numero}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "campo_endereco": "${form.campo_endereco}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "EDITAR_CAMPO_ENDERECO",
+      "title": "Editar campo do endereço",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextBody",
+            "text": "Informe o novo valor para o campo selecionado."
+          },
+          {
+            "type": "Form",
+            "name": "form_editar_campo_endereco",
+            "children": [
+              {
+                "type": "TextInput",
+                "name": "valor_campo_endereco",
+                "label": "Novo valor",
+                "required": true,
+                "init-value": "${data.valor_campo_endereco}"
+              },
+              {
+                "type": "Footer",
+                "label": "Salvar ajuste",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "nome_contato_recado": "${data.nome_contato_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}",
+                    "numero": "${data.numero}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "campo_endereco": "${data.campo_endereco}",
+                    "valor_campo_endereco": "${form.valor_campo_endereco}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CONFIRMA_ENDERECO_AJUSTADO",
+      "title": "Confirmar endereço ajustado",
+      "terminal": false,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextBody",
+            "text": "Confira o endereço ajustado antes de continuar."
+          },
+          {
+            "type": "TextBody",
+            "text": "CEP: ${data.cep}\nLogradouro: ${data.logradouro}\nBairro: ${data.bairro}\nCidade: ${data.cidade}\nUF: ${data.uf}"
+          },
+          {
+            "type": "Form",
+            "name": "form_confirma_endereco_ajustado",
+            "children": [
+              {
+                "type": "Dropdown",
+                "name": "decisao_endereco",
+                "label": "O endereço está correto?",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "confirmar",
+                    "title": "Sim, continuar"
+                  },
+                  {
+                    "id": "encerrar",
+                    "title": "Não, encerrar para ajuste externo"
+                  }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Continuar",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "protocolo": "${data.protocolo}",
+                    "cpf": "${data.cpf}",
+                    "nome": "${data.nome}",
+                    "family_code": "${data.family_code}",
+                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_recado": "${data.telefone_recado}",
+                    "nome_contato_recado": "${data.nome_contato_recado}",
+                    "cep": "${data.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}",
+                    "numero": "${data.numero}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}",
+                    "decisao_endereco": "${form.decisao_endereco}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "id": "CEP_REINPUT",
       "title": "Corrigir CEP",
       "terminal": false,
@@ -274,7 +496,15 @@
                     "telefone_principal": "${data.telefone_principal}",
                     "telefone_recado": "${data.telefone_recado}",
                     "nome_contato_recado": "${data.nome_contato_recado}",
-                    "cep": "${form.cep}"
+                    "cep": "${form.cep}",
+                    "logradouro": "${data.logradouro}",
+                    "bairro": "${data.bairro}",
+                    "cidade": "${data.cidade}",
+                    "uf": "${data.uf}",
+                    "ibge": "${data.ibge}",
+                    "numero": "${data.numero}",
+                    "complemento": "${data.complemento}",
+                    "ponto_referencia": "${data.ponto_referencia}"
                   }
                 }
               }
