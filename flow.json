@@ -13,8 +13,8 @@
     ],
     "CONFIRMA_ENDERECO_ONE": [
       "COMPLEMENTAR_ENDERECO_CADASTRAL",
-      "ENDERECO_COMPLETO",
       "ESCOLHER_CAMPO_ENDERECO",
+      "ENDERECO_COMPLETO",
       "FINISH"
     ],
     "CEP_REINPUT": [
@@ -22,6 +22,8 @@
       "FINISH"
     ],
     "CONFIRMA_ENDERECO_TWO": [
+      "COMPLEMENTAR_ENDERECO_CADASTRAL",
+      "ESCOLHER_CAMPO_ENDERECO",
       "ENDERECO_COMPLETO",
       "FINISH"
     ],
@@ -66,7 +68,6 @@
       "FINISH"
     ],
     "ESCOLHER_CAMPO_ENDERECO": [
-      "CEP_REINPUT",
       "EDITAR_CAMPO_ENDERECO",
       "FINISH"
     ],
@@ -75,6 +76,8 @@
       "FINISH"
     ],
     "CONFIRMA_ENDERECO_AJUSTADO": [
+      "COMPLEMENTAR_ENDERECO_CADASTRAL",
+      "ESCOLHER_CAMPO_ENDERECO",
       "ENDERECO_COMPLETO",
       "FINISH"
     ],
@@ -202,7 +205,7 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Confirme se o endereço encontrado está correto."
+            "text": "Confirme os dados recebidos. Se precisar, escolha corrigir para editar logradouro, bairro ou complemento. Para CEP, o flow será encerrado para abrir outro fluxo."
           },
           {
             "type": "TextBody",
@@ -220,11 +223,15 @@
                 "data-source": [
                   {
                     "id": "confirmar",
-                    "title": "Sim, continuar"
+                    "title": "Dados corretos"
                   },
                   {
                     "id": "corrigir",
-                    "title": "Não, corrigir endereço"
+                    "title": "Editar endereço"
+                  },
+                  {
+                    "id": "encerrar",
+                    "title": "Encerrar"
                   }
                 ]
               },
@@ -266,7 +273,7 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Alguns dados do endereço não vieram completos. Revise as informações atuais e preencha os campos necessários."
+            "text": "Alguns dados vieram em branco. Revise as informações atuais e preencha logradouro, bairro e complemento para continuar."
           },
           {
             "type": "TextBody",
@@ -333,7 +340,7 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Escolha qual campo do endereço você deseja ajustar."
+            "text": "Escolha o campo que deseja ajustar. Se selecionar CEP, este flow será encerrado com o motivo para abrir outro flow."
           },
           {
             "type": "Form",
@@ -358,12 +365,8 @@
                     "title": "Bairro"
                   },
                   {
-                    "id": "cidade",
-                    "title": "Cidade"
-                  },
-                  {
-                    "id": "uf",
-                    "title": "UF"
+                    "id": "complemento",
+                    "title": "Complemento"
                   }
                 ]
               },
@@ -460,7 +463,7 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Confira o endereço ajustado antes de continuar."
+            "text": "Confira o endereço ajustado. Se ainda precisar, escolha corrigir novamente."
           },
           {
             "type": "TextBody",
@@ -481,8 +484,12 @@
                     "title": "Sim, continuar"
                   },
                   {
+                    "id": "corrigir",
+                    "title": "Corrigir outro campo"
+                  },
+                  {
                     "id": "encerrar",
-                    "title": "Não, encerrar para ajuste externo"
+                    "title": "Encerrar"
                   }
                 ]
               },
@@ -578,7 +585,7 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Confirme se o novo endereço encontrado está correto."
+            "text": "Confirme os dados recebidos. Se precisar, escolha corrigir para editar logradouro, bairro ou complemento. Para CEP, o flow será encerrado para abrir outro fluxo."
           },
           {
             "type": "TextBody",
@@ -596,11 +603,15 @@
                 "data-source": [
                   {
                     "id": "confirmar",
-                    "title": "Sim, continuar"
+                    "title": "Dados corretos"
+                  },
+                  {
+                    "id": "corrigir",
+                    "title": "Editar endereço"
                   },
                   {
                     "id": "encerrar",
-                    "title": "Não, encerrar para ajuste externo"
+                    "title": "Encerrar"
                   }
                 ]
               },
@@ -1243,7 +1254,23 @@
                 "reason_code": "${data.reason_code}",
                 "reason": "${data.reason}",
                 "protocolo": "${data.protocolo}",
-                "job_id": "${data.job_id}"
+                "job_id": "${data.job_id}",
+                "cpf": "${data.cpf}",
+                "nome": "${data.nome}",
+                "family_code": "${data.family_code}",
+                "telefone_principal": "${data.telefone_principal}",
+                "telefone_recado": "${data.telefone_recado}",
+                "nome_contato_recado": "${data.nome_contato_recado}",
+                "cep": "${data.cep}",
+                "logradouro": "${data.logradouro}",
+                "numero": "${data.numero}",
+                "bairro": "${data.bairro}",
+                "cidade": "${data.cidade}",
+                "uf": "${data.uf}",
+                "complemento": "${data.complemento}",
+                "ponto_referencia": "${data.ponto_referencia}",
+                "ibge": "${data.ibge}",
+                "tipo_documento": "${data.tipo_documento}"
               }
             }
           }
