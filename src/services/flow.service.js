@@ -91,9 +91,9 @@ function normalizeCommonState(data = {}) {
     logradouro: String(data.logradouro || data.street || ''),
     numero: String(data.numero || ''),
     bairro: String(data.bairro || data.neighborhood || ''),
-    complemento: String(data.complemento || ''),
+    complemento: data.complemento == null ? '' : String(data.complemento),
     cidade: String(data.cidade || data.city || ''),
-    uf: String(data.uf || data.estado || data.state || ''),
+    uf: String(data.uf || data.estado || data.state || '').toUpperCase(),
     ibge: String(data.ibge || ''),
     ponto_referencia: String(data.ponto_referencia || ''),
     campo_endereco: String(data.campo_endereco || '').toLowerCase(),
@@ -104,41 +104,37 @@ function normalizeCommonState(data = {}) {
     selfie_com_doc: normalizeMediaArray(data.selfie_com_doc),
     comprovante_residencia: normalizeMediaArray(data.comprovante_residencia || data.comprovante),
     fachada: normalizeMediaArray(data.fachada),
-    tv_ligada: normalizeMediaArray(data.tv_ligada),
-    resumo_texto: String(data.resumo_texto || '')
+    tv_ligada: normalizeMediaArray(data.tv_ligada)
   };
 }
 
-function buildResumoTexto(state = {}) {
-  return [
-    `Protocolo: ${state.protocolo || '-'}`,
-    `Nome: ${state.nome || '-'}`,
-    `CPF: ${state.cpf || '-'}`,
-    `Telefone principal: ${state.telefone_principal || '-'}`,
-    `Telefone de recado: ${state.telefone_recado || '-'}`,
-    `Contato de recado: ${state.nome_contato_recado || '-'}`,
-    `Endereço: ${state.logradouro || '-'}, ${state.numero || '-'}${state.complemento ? `, ${state.complemento}` : ''} - ${state.bairro || '-'}`,
-    `Cidade/UF: ${state.cidade || '-'} / ${state.uf || '-'}`,
-    `CEP: ${state.cep || '-'}`,
-    `Ponto de referência: ${state.ponto_referencia || '-'}`,
-    `Tipo de documento: ${state.tipo_documento || '-'}`
-  ].join('\n');
+function hasBaseAddress(state) {
+  return Boolean(
+    state.cep &&
+      String(state.cep).trim() &&
+      state.cidade &&
+      String(state.cidade).trim() &&
+      state.uf &&
+      String(state.uf).trim()
+  );
 }
 
-
-function initialAddressAvailable(state) {
-  return Boolean(state.cep && state.cidade && state.uf && (state.logradouro || state.bairro || state.numero || state.complemento || state.ponto_referencia));
+function missingAddressDetails(state) {
+  return {
+    logradouro: !state.logradouro || !String(state.logradouro).trim(),
+    bairro: !state.bairro || !String(state.bairro).trim(),
+    complemento: state.complemento == null || String(state.complemento).trim() === ''
+  };
 }
 
-function needsAddressDetails(state) {
-  return Boolean(!state.logradouro || !state.bairro || !state.complemento);
+function needsAddressComplement(state) {
+  const missing = missingAddressDetails(state);
+  return missing.logradouro || missing.bairro || missing.complemento;
 }
 
 function replaceAddressField(state, field, value) {
   const nextValue = requiredText(value, 120);
-  if (!nextValue) {
-    return null;
-  }
+  if (!nextValue) return null;
 
   switch (field) {
     case 'logradouro':
@@ -149,6 +145,8 @@ function replaceAddressField(state, field, value) {
       return { ...state, cidade: nextValue };
     case 'uf':
       return { ...state, uf: nextValue.toUpperCase() };
+    case 'complemento':
+      return { ...state, complemento: nextValue };
     default:
       return null;
   }
@@ -163,6 +161,12 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
 
     case 'CPF_INPUT': {
       const nextAttempts = Number(state.cpf_attempts || 0) + 1;
+
+      console.log('[FLOW][CPF_INPUT] payload recebido:', JSON.stringify({
+        cpf: state.cpf,
+        telefone_principal: state.telefone_principal,
+        cpf_attempts: state.cpf_attempts
+      }, null, 2));
 
       if (!isValidCPF(state.cpf)) {
         if (nextAttempts >= 3) {
@@ -185,7 +189,13 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      const eligibility = await validateCpfEligibility(state.cpf, state.protocolo);
+      const eligibility = await validateCpfEligibility(
+        state.cpf,
+        state.protocolo,
+        state.telefone_principal
+      );
+
+      console.log('[FLOW][CPF_INPUT] validation result:', JSON.stringify(eligibility, null, 2));
 
       if (!eligibility.eligible) {
         return failureResponse({
@@ -239,59 +249,63 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         nome: eligibility.nome || state.nome,
         family_code: eligibility.familyCode || state.family_code,
         cep: normalizeCep(eligibility.cep || state.cep),
-        logradouro: String(eligibility.logradouro || eligibility.street || state.logradouro || ''),
-        bairro: String(eligibility.bairro || eligibility.neighborhood || state.bairro || ''),
-        cidade: String(eligibility.cidade || eligibility.city || state.cidade || ''),
-        uf: String(eligibility.uf || eligibility.state || state.uf || ''),
-        ibge: String(eligibility.ibge || state.ibge || ''),
-        numero: String(eligibility.numero || state.numero || ''),
-        complemento: String(eligibility.complemento || state.complemento || ''),
-        ponto_referencia: String(eligibility.ponto_referencia || state.ponto_referencia || ''),
+        logradouro: String(eligibility.logradouro || state.logradouro || '').trim(),
+        bairro: String(eligibility.bairro || state.bairro || '').trim(),
+        cidade: String(eligibility.cidade || state.cidade || '').trim(),
+        uf: String(eligibility.uf || state.uf || '').trim().toUpperCase(),
+        complemento:
+          eligibility.complemento == null
+            ? String(state.complemento || '')
+            : String(eligibility.complemento).trim(),
+        ibge: String(eligibility.ibge || state.ibge || '').trim(),
         telefone_principal: normalizePhone(
-          state.telefone_principal ||
-            eligibility.telefone_principal ||
-            eligibility.telefone ||
-            eligibility.phone
+          eligibility.telefone_principal || state.telefone_principal
         ),
         cpf_attempts: 0,
         cpf_feedback: ''
       };
 
-      return successNext(initialAddressAvailable(nextState) ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', nextState);
-    }
+      const addressExists = hasBaseAddress(nextState);
 
-    case 'CONTATOS': {
-      const telefonePrincipal = normalizePhone(state.telefone_principal);
-      const telefoneRecado = normalizePhone(state.telefone_recado);
+      console.log('[FLOW][CPF_INPUT] address decision inputs:', JSON.stringify({
+        cep: nextState.cep,
+        logradouro: nextState.logradouro,
+        bairro: nextState.bairro,
+        cidade: nextState.cidade,
+        uf: nextState.uf,
+        complemento: nextState.complemento,
+        hasBaseAddress: addressExists,
+        missingAddressFields: missingAddressDetails(nextState)
+      }, null, 2));
 
-      if (!isValidPhone(telefonePrincipal)) {
-        return failureResponse({
-          protocolo: state.protocolo,
-          code: 'telefone_principal_invalido',
-          reason: `Telefone principal inválido: ${state.telefone_principal}`
-        });
-      }
+      const nextScreen = addressExists ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT';
 
-      if (telefoneRecado && !isValidPhone(telefoneRecado)) {
-        return failureResponse({
-          protocolo: state.protocolo,
-          code: 'telefone_recado_invalido',
-          reason: `Telefone para recado inválido: ${state.telefone_recado}`
-        });
-      }
+      console.log('[FLOW][CPF_INPUT] nextScreen selected:', nextScreen);
 
-      return successNext('TIPO_DOCUMENTO', {
-        ...state,
-        telefone_principal: telefonePrincipal,
-        telefone_recado: telefoneRecado
-      });
+      return successNext(nextScreen, nextState);
     }
 
     case 'CONFIRMA_ENDERECO_ONE': {
       const decisao = String(data.decisao_endereco || '').toLowerCase();
 
+      console.log('[FLOW][CONFIRMA_ENDERECO_ONE] state:', JSON.stringify({
+        cep: state.cep,
+        logradouro: state.logradouro,
+        bairro: state.bairro,
+        cidade: state.cidade,
+        uf: state.uf,
+        complemento: state.complemento,
+        missingAddressFields: missingAddressDetails(state),
+        decisao
+      }, null, 2));
+
       if (decisao === 'confirmar') {
-        return successNext(needsAddressDetails(state) ? 'COMPLEMENTAR_ENDERECO_CADASTRAL' : 'ENDERECO_COMPLETO', state);
+        const nextScreen = needsAddressComplement(state)
+          ? 'COMPLEMENTAR_ENDERECO_CADASTRAL'
+          : 'ENDERECO_COMPLETO';
+
+        console.log('[FLOW][CONFIRMA_ENDERECO_ONE] nextScreen selected:', nextScreen);
+        return successNext(nextScreen, state);
       }
 
       if (decisao === 'corrigir') {
@@ -305,9 +319,52 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       });
     }
 
+    case 'COMPLEMENTAR_ENDERECO_CADASTRAL': {
+      const logradouro = requiredText(data.logradouro || state.logradouro, 120);
+      const bairro = requiredText(data.bairro || state.bairro, 120);
+      const complemento = requiredText(data.complemento, 120);
+
+      console.log('[FLOW][COMPLEMENTAR_ENDERECO_CADASTRAL] payload:', JSON.stringify({
+        logradouro,
+        bairro,
+        complemento
+      }, null, 2));
+
+      if (!logradouro) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'logradouro_obrigatorio',
+          reason: 'Logradouro é obrigatório.'
+        });
+      }
+
+      if (!bairro) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'bairro_obrigatorio',
+          reason: 'Bairro é obrigatório.'
+        });
+      }
+
+      if (!complemento) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'complemento_obrigatorio',
+          reason: 'Complemento é obrigatório.'
+        });
+      }
+
+      return successNext('ENDERECO_COMPLETO', {
+        ...state,
+        logradouro,
+        bairro,
+        complemento
+      });
+    }
+
     case 'ESCOLHER_CAMPO_ENDERECO': {
       const campo = String(data.campo_endereco || '').toLowerCase();
-      const camposPermitidos = ['cep', 'logradouro', 'bairro', 'cidade', 'uf'];
+      const camposPermitidos = ['cep', 'logradouro', 'bairro', 'cidade', 'uf', 'complemento'];
 
       if (!camposPermitidos.includes(campo)) {
         return failureResponse({
@@ -328,7 +385,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       const campo = state.campo_endereco;
       const valor = requiredText(data.valor_campo_endereco, 120);
 
-      if (!campo || !['logradouro', 'bairro', 'cidade', 'uf'].includes(campo)) {
+      if (!campo || !['logradouro', 'bairro', 'cidade', 'uf', 'complemento'].includes(campo)) {
         return failureResponse({
           protocolo: state.protocolo,
           code: 'campo_endereco_invalido',
@@ -359,8 +416,24 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
     case 'CONFIRMA_ENDERECO_AJUSTADO': {
       const decisao = String(data.decisao_endereco || '').toLowerCase();
 
+      console.log('[FLOW][CONFIRMA_ENDERECO_AJUSTADO] state:', JSON.stringify({
+        cep: state.cep,
+        logradouro: state.logradouro,
+        bairro: state.bairro,
+        cidade: state.cidade,
+        uf: state.uf,
+        complemento: state.complemento,
+        missingAddressFields: missingAddressDetails(state),
+        decisao
+      }, null, 2));
+
       if (decisao === 'confirmar') {
-        return successNext('ENDERECO_COMPLETO', state);
+        const nextScreen = needsAddressComplement(state)
+          ? 'COMPLEMENTAR_ENDERECO_CADASTRAL'
+          : 'ENDERECO_COMPLETO';
+
+        console.log('[FLOW][CONFIRMA_ENDERECO_AJUSTADO] nextScreen selected:', nextScreen);
+        return successNext(nextScreen, state);
       }
 
       if (decisao === 'encerrar') {
@@ -378,44 +451,12 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       });
     }
 
-    case 'COMPLEMENTAR_ENDERECO_CADASTRAL': {
-      const logradouro = requiredText(data.logradouro || state.logradouro, 120);
-      const bairro = requiredText(data.bairro || state.bairro, 120);
-      const complemento = requiredText(data.complemento || state.complemento, 120);
-
-      if (!logradouro) {
-        return failureResponse({
-          protocolo: state.protocolo,
-          code: 'logradouro_obrigatorio',
-          reason: 'Informe o logradouro para continuar.'
-        });
-      }
-
-      if (!bairro) {
-        return failureResponse({
-          protocolo: state.protocolo,
-          code: 'bairro_obrigatorio',
-          reason: 'Informe o bairro para continuar.'
-        });
-      }
-
-      if (!complemento) {
-        return failureResponse({
-          protocolo: state.protocolo,
-          code: 'complemento_obrigatorio',
-          reason: 'Informe o complemento do endereço para continuar.'
-        });
-      }
-
-      return successNext('ENDERECO_COMPLETO', {
-        ...state,
-        logradouro,
-        bairro,
-        complemento
-      });
-    }
-
     case 'CEP_REINPUT': {
+      console.log('[FLOW][CEP_REINPUT] state antes da validação:', JSON.stringify({
+        cep: state.cep,
+        protocolo: state.protocolo
+      }, null, 2));
+
       if (!isValidCepFormat(state.cep)) {
         return failureResponse({
           protocolo: state.protocolo,
@@ -425,6 +466,8 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       }
 
       const cepValidation = await validateCepEligibility(state.cep, state.protocolo);
+
+      console.log('[FLOW][CEP_REINPUT] cep validation:', JSON.stringify(cepValidation, null, 2));
 
       if (!cepValidation.ok) {
         return failureResponse({
@@ -437,19 +480,36 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       return successNext('CONFIRMA_ENDERECO_TWO', {
         ...state,
         cep: cepValidation.address.cep,
-        logradouro: cepValidation.address.street,
-        bairro: cepValidation.address.neighborhood,
-        cidade: cepValidation.address.city,
-        uf: cepValidation.address.state,
-        ibge: cepValidation.address.ibge || ''
+        logradouro: state.logradouro,
+        bairro: state.bairro,
+        cidade: state.cidade,
+        uf: state.uf,
+        complemento: state.complemento,
+        ibge: state.ibge
       });
     }
 
     case 'CONFIRMA_ENDERECO_TWO': {
       const decisao = String(data.decisao_endereco || '').toLowerCase();
 
+      console.log('[FLOW][CONFIRMA_ENDERECO_TWO] state:', JSON.stringify({
+        cep: state.cep,
+        logradouro: state.logradouro,
+        bairro: state.bairro,
+        cidade: state.cidade,
+        uf: state.uf,
+        complemento: state.complemento,
+        missingAddressFields: missingAddressDetails(state),
+        decisao
+      }, null, 2));
+
       if (decisao === 'confirmar') {
-        return successNext('ENDERECO_COMPLETO', state);
+        const nextScreen = needsAddressComplement(state)
+          ? 'COMPLEMENTAR_ENDERECO_CADASTRAL'
+          : 'ENDERECO_COMPLETO';
+
+        console.log('[FLOW][CONFIRMA_ENDERECO_TWO] nextScreen selected:', nextScreen);
+        return successNext(nextScreen, state);
       }
 
       if (decisao === 'encerrar') {
@@ -469,7 +529,6 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
 
     case 'ENDERECO_COMPLETO': {
       const numero = requiredText(data.numero, 20);
-      const complemento = requiredText(data.complemento, 120);
       const pontoReferencia = requiredText(data.ponto_referencia, 180);
 
       if (!numero) {
@@ -491,8 +550,34 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
       return successNext('CONTATOS', {
         ...state,
         numero,
-        complemento,
         ponto_referencia: pontoReferencia
+      });
+    }
+
+    case 'CONTATOS': {
+      const telefonePrincipal = normalizePhone(state.telefone_principal);
+      const telefoneRecado = normalizePhone(state.telefone_recado);
+
+      if (!isValidPhone(telefonePrincipal)) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'telefone_principal_invalido',
+          reason: `Telefone principal inválido: ${state.telefone_principal}`
+        });
+      }
+
+      if (telefoneRecado && !isValidPhone(telefoneRecado)) {
+        return failureResponse({
+          protocolo: state.protocolo,
+          code: 'telefone_recado_invalido',
+          reason: `Telefone para recado inválido: ${state.telefone_recado}`
+        });
+      }
+
+      return successNext('TIPO_DOCUMENTO', {
+        ...state,
+        telefone_principal: telefonePrincipal,
+        telefone_recado: telefoneRecado
       });
     }
 
@@ -588,42 +673,9 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      return successNext('RESUMO_FINAL', {
-        ...state,
-        tv_ligada: tvLigada,
-        resumo_texto: buildResumoTexto({ ...state, tv_ligada: tvLigada })
-      });
-    }
-
-    case 'RESUMO_FINAL': {
-      const decisao = String(data.decisao_resumo || '').toLowerCase();
-
-      if (decisao === 'confirmar') {
-        return successNext('CONFIRMACAO_FINAL', {
-          ...state,
-          resumo_texto: state.resumo_texto || buildResumoTexto(state)
-        });
-      }
-
-      if (decisao === 'encerrar') {
-        return failureResponse({
-          protocolo: state.protocolo,
-          code: 'ajuste_externo_resumo',
-          reason: 'Solicitação encerrada para ajuste externo.'
-        });
-      }
-
-      return failureResponse({
-        protocolo: state.protocolo,
-        code: 'decisao_resumo_invalida',
-        reason: 'Escolha uma opção para continuar.'
-      });
-    }
-
-    case 'CONFIRMACAO_FINAL': {
       const finalState = {
         ...state,
-        resumo_texto: state.resumo_texto || buildResumoTexto(state)
+        tv_ligada: tvLigada
       };
 
       const job = await enqueueJob({

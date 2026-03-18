@@ -28,16 +28,10 @@ export function isValidCPF(value) {
 export function normalizePhone(value) {
   let phone = digits(value);
 
-  // Remove o DDI do Brasil quando o número vier como 55 + DDD + número.
-  // Exemplos tratados:
-  // 5511999999999 -> 11999999999
-  // 553199999999 -> 3199999999
   if ((phone.length === 12 || phone.length === 13) && phone.startsWith('55')) {
     phone = phone.slice(2);
   }
 
-  // Mantém apenas o trecho final quando o canal enviar identificadores com
-  // prefixos extras, preservando o telefone brasileiro local (DDD + número).
   if (phone.length > 11) {
     phone = phone.slice(-11);
   }
@@ -62,91 +56,13 @@ export function requiredText(value, maxLength = 120) {
   return String(value || '').trim().slice(0, maxLength);
 }
 
-export async function lookupAddressByCep(cep) {
-  const cleanCep = normalizeCep(cep);
-  const baseUrl = envUrl('CEP_API_URL');
-
-  if (baseUrl) {
-    const data = await apiGet(`${baseUrl}/${cleanCep}`, { authenticated: false });
-    return {
-      cep: cleanCep,
-      street: data.logradouro || data.street || '',
-      neighborhood: data.bairro || data.neighborhood || '',
-      city: data.localidade || data.city || '',
-      state: data.uf || data.state || '',
-      ibge: data.ibge || data.city_code || ''
-    };
-  }
-
-  const data = await apiGet(`https://viacep.com.br/ws/${cleanCep}/json/`, { authenticated: false });
-  if (data.erro) return null;
-
-  return {
-    cep: cleanCep,
-    street: data.logradouro || '',
-    neighborhood: data.bairro || '',
-    city: data.localidade || '',
-    state: data.uf || '',
-    ibge: data.ibge || ''
-  };
-}
-
 async function getOptional(executor, fallbackValue) {
   try {
     return await executor();
-  } catch {
+  } catch (error) {
+    console.error('[VALIDATIONS] optional call failed:', error?.message || error);
     return fallbackValue;
   }
-}
-
-
-function firstValue(...values) {
-  for (const value of values) {
-    if (value !== undefined && value !== null && String(value).trim() !== '') {
-      return value;
-    }
-  }
-  return '';
-}
-
-function normalizeCadastroUnicoPayload(data = {}) {
-  const ticket = data.ticket || {};
-  const customer = ticket.customer || data.customer || {};
-  const customerAddress = customer.address || {};
-  const cadUnico = customer.cadUnico || data.cadUnico || {};
-  const contacts = Array.isArray(customer.contacts) ? customer.contacts : [];
-  const primaryContact = contacts.find((contact) => String(contact?.type || '').toUpperCase() === 'PHONE') || contacts[0] || {};
-  const hasAddressRecord = Object.values(customerAddress).some((value) => value !== undefined && value !== null && String(value).trim() !== '');
-
-  return {
-    result: typeof data.result === 'boolean' ? data.result : undefined,
-    eligible: typeof data.result === 'boolean' ? data.result : data.eligible,
-    nome: firstValue(data.name, customer.name, cadUnico.name),
-    name: firstValue(data.name, customer.name, cadUnico.name),
-    protocol: firstValue(data.protocol, ticket.protocol),
-    protocolo: firstValue(data.protocol, ticket.protocol),
-    familyCode: firstValue(cadUnico.familyCode, data.familyCode, data.family_code),
-    family_code: firstValue(cadUnico.familyCode, data.familyCode, data.family_code),
-    nis: firstValue(customer.nis, cadUnico.nis, data.nis),
-    cep: firstValue(customerAddress.postalCode, data.cep),
-    postalCode: firstValue(customerAddress.postalCode, data.cep),
-    logradouro: firstValue(customerAddress.streetName, customerAddress.street, data.logradouro),
-    street: firstValue(customerAddress.streetName, customerAddress.street, data.street),
-    bairro: firstValue(customerAddress.neighborhood, data.bairro),
-    neighborhood: firstValue(customerAddress.neighborhood, data.neighborhood),
-    cidade: firstValue(customerAddress.city, data.cidade),
-    city: firstValue(customerAddress.city, data.city),
-    uf: firstValue(customerAddress.state, data.uf),
-    state: firstValue(customerAddress.state, data.state),
-    ibge: firstValue(cadUnico.ibgeCode, data.ibge),
-    telefone_principal: firstValue(primaryContact.value, customer.phone, data.telefone_principal),
-    telefone: firstValue(primaryContact.value, customer.phone, data.telefone),
-    numero: firstValue(customerAddress.number, data.numero),
-    complemento: firstValue(customerAddress.complement, data.complemento),
-    ponto_referencia: firstValue(customerAddress.reference, data.ponto_referencia),
-    message: firstValue(data.message),
-    hasAddressRecord
-  };
 }
 
 function boolFromResponse(data, keys = [], fallback = true) {
@@ -156,15 +72,45 @@ function boolFromResponse(data, keys = [], fallback = true) {
   return fallback;
 }
 
-export async function validateCpfEligibility(cpf, protocolo = '') {
-  const cleanCpf = normalizeCpf(cpf);
-  const familyVerificationUrl = envUrl('FAMILY_CODE_VERIFICATION_API_URL', crmUrl('family-code-verification'));
-  const cadastroUnicoUrl = envUrl('CADASTRO_UNICO_API_URL', crmUrl('cadastro-unico-verification'));
-  const extraPhaseFamilyUrl = envUrl('EXTRA_PHASE_FAMILY_API_URL', crmUrl('fase-extra'));
+function firstPhoneContact(contacts = []) {
+  if (!Array.isArray(contacts)) return '';
+  const phoneContact = contacts.find((item) => String(item?.type || '').toUpperCase() === 'PHONE');
+  return phoneContact?.value || '';
+}
 
-  const cadastroUnico = normalizeCadastroUnicoPayload(await getOptional(async () => {
+export async function validateCpfEligibility(cpf, protocolo = '', telefonePrincipal = '') {
+  const cleanCpf = normalizeCpf(cpf);
+
+  const familyVerificationUrl = envUrl(
+    'FAMILY_CODE_VERIFICATION_API_URL',
+    crmUrl('family-code-verification')
+  );
+
+  const cadastroUnicoUrl = envUrl(
+    'CADASTRO_UNICO_API_URL',
+    crmUrl('cadastro-unico-verification')
+  );
+
+  const extraPhaseFamilyUrl = envUrl(
+    'EXTRA_PHASE_FAMILY_API_URL',
+    crmUrl('fase-extra-family-code')
+  );
+
+  const cadastroUnico = await getOptional(async () => {
     if (!cadastroUnicoUrl) {
-      return { eligible: true, nome: '', familyCode: '', hasInstallation: false, hasScheduleForCpf: false };
+      return {
+        result: false,
+        protocol: protocolo,
+        ticket: {
+          customer: {
+            cpf: cleanCpf,
+            name: '',
+            contacts: [],
+            address: {},
+            cadUnico: {}
+          }
+        }
+      };
     }
 
     return apiGet(cadastroUnicoUrl, {
@@ -172,19 +118,56 @@ export async function validateCpfEligibility(cpf, protocolo = '') {
         channel: process.env.CADUNICO_CHANNEL || 'WHATSAPP',
         classification: process.env.CADUNICO_CLASSIFICATION || 'AGENDAMENTO',
         document: cleanCpf,
-        documentType: 'CPF',
-        whoContacted: process.env.CADUNICO_WHO_CONTACTED || 'titular'
+        documentType: 'CPF'
       }
     });
-  }, { eligible: true, nome: '', familyCode: '', hasInstallation: false, hasScheduleForCpf: false }));
+  }, {
+    result: false,
+    protocol: protocolo,
+    ticket: {
+      customer: {
+        cpf: cleanCpf,
+        name: '',
+        contacts: [],
+        address: {},
+        cadUnico: {}
+      }
+    }
+  });
 
-  const familyCode = String(
-    cadastroUnico.familyCode ||
-    cadastroUnico.family_code ||
-    cadastroUnico.codigoFamilia ||
-    cadastroUnico.familyCodeNumber ||
-    ''
+  console.log('[CPF] cadastro-unico raw response:', JSON.stringify(cadastroUnico, null, 2));
+
+  const customer = cadastroUnico?.ticket?.customer ?? {};
+  const address = customer?.address ?? {};
+  const cadUnico = customer?.cadUnico ?? {};
+  const contacts = Array.isArray(customer?.contacts) ? customer.contacts : [];
+
+  console.log('[CPF] customer.address extraído:', JSON.stringify(address, null, 2));
+
+  const familyCode = String(cadUnico?.familyCode || '').trim();
+
+  const normalizedPhone = normalizePhone(
+    telefonePrincipal ||
+      firstPhoneContact(contacts) ||
+      ''
   );
+
+  const normalized = {
+    protocolo: String(cadastroUnico?.protocol || protocolo || '').trim(),
+    cpf: normalizeCpf(customer?.cpf || cleanCpf),
+    nome: String(customer?.name || cadastroUnico?.name || '').trim(),
+    familyCode,
+    telefone_principal: normalizedPhone,
+    cep: normalizeCep(address?.postalCode || ''),
+    logradouro: String(address?.streetName || '').trim(),
+    bairro: String(address?.neighborhood || '').trim(),
+    cidade: String(address?.city || '').trim(),
+    uf: String(address?.state || '').trim().toUpperCase(),
+    complemento: address?.complement == null ? '' : String(address.complement).trim(),
+    ibge: String(cadUnico?.ibgeCode || '').trim()
+  };
+
+  console.log('[CPF] normalized address data:', JSON.stringify(normalized, null, 2));
 
   const familyVerification = await getOptional(async () => {
     if (!familyVerificationUrl || !cleanCpf) {
@@ -193,7 +176,7 @@ export async function validateCpfEligibility(cpf, protocolo = '') {
         hasInstallation: false,
         hasScheduleForCpf: false,
         hasScheduleForFamilyCode: false,
-        protocolo: ''
+        protocolo: normalized.protocolo
       };
     }
 
@@ -201,7 +184,7 @@ export async function validateCpfEligibility(cpf, protocolo = '') {
       params: {
         document: cleanCpf,
         documentType: 'CPF',
-        protocol: protocolo
+        protocol: normalized.protocolo || protocolo
       }
     });
   }, {
@@ -209,7 +192,7 @@ export async function validateCpfEligibility(cpf, protocolo = '') {
     hasInstallation: false,
     hasScheduleForCpf: false,
     hasScheduleForFamilyCode: false,
-    protocolo: ''
+    protocolo: normalized.protocolo
   });
 
   const extraPhase = await getOptional(async () => {
@@ -218,78 +201,90 @@ export async function validateCpfEligibility(cpf, protocolo = '') {
     return apiGet(extraPhaseFamilyUrl, {
       params: {
         familyCode,
-        protocol: protocolo
+        protocol: normalized.protocolo || protocolo
       }
     });
   }, { eligible: true });
 
-  return {
-    eligible: boolFromResponse(cadastroUnico, ['eligible', 'exists', 'found'], true),
-    nome: cadastroUnico.nome || cadastroUnico.name || cadastroUnico.customerName || '',
-    familyCode,
-    protocoloExistente: familyVerification.protocolo || familyVerification.protocol || cadastroUnico.protocolo || '',
+  const result = {
+    eligible: boolFromResponse(cadastroUnico, ['result', 'eligible', 'exists', 'found'], false),
+    nome: normalized.nome,
+    familyCode: normalized.familyCode,
+    protocoloExistente:
+      familyVerification?.protocolo ||
+      familyVerification?.protocol ||
+      normalized.protocolo ||
+      '',
     extraPhaseEligible: boolFromResponse(extraPhase, ['eligible', 'available', 'success'], true),
-    hasInstallation: Boolean(familyVerification.hasInstallation || familyVerification.serviceOrderOpen || familyVerification.existsOpenOrder),
-    hasScheduleForCpf: Boolean(familyVerification.hasScheduleForCpf || familyVerification.scheduleOpenForCpf),
-    hasScheduleForFamilyCode: Boolean(familyVerification.hasScheduleForFamilyCode || familyVerification.scheduleOpenForFamilyCode)
+    hasInstallation: Boolean(
+      familyVerification?.hasInstallation ||
+        familyVerification?.serviceOrderOpen ||
+        familyVerification?.existsOpenOrder
+    ),
+    hasScheduleForCpf: Boolean(
+      familyVerification?.hasScheduleForCpf || familyVerification?.scheduleOpenForCpf
+    ),
+    hasScheduleForFamilyCode: Boolean(
+      familyVerification?.hasScheduleForFamilyCode ||
+        familyVerification?.scheduleOpenForFamilyCode
+    ),
+    protocolo: normalized.protocolo,
+    cpf: normalized.cpf,
+    telefone_principal: normalized.telefone_principal,
+    cep: normalized.cep,
+    logradouro: normalized.logradouro,
+    bairro: normalized.bairro,
+    cidade: normalized.cidade,
+    uf: normalized.uf,
+    complemento: normalized.complemento,
+    ibge: normalized.ibge
   };
+
+  console.log('[CPF] result:', JSON.stringify({
+    eligible: result.eligible,
+    protocolo: result.protocolo,
+    cpf: result.cpf,
+    nome: result.nome,
+    familyCode: result.familyCode,
+    cep: result.cep,
+    logradouro: result.logradouro,
+    bairro: result.bairro,
+    cidade: result.cidade,
+    uf: result.uf,
+    complemento: result.complemento,
+    hasBaseAddress: Boolean(result.cep && result.cidade && result.uf),
+    hasLogradouro: Boolean(result.logradouro),
+    hasBairro: Boolean(result.bairro),
+    hasComplemento: String(result.complemento || '').trim() !== ''
+  }, null, 2));
+
+  return result;
 }
 
 export async function validateCepEligibility(cep, protocolo = '') {
-  const address = await lookupAddressByCep(cep);
-  if (!address) {
-    return { ok: false, code: 'cep_not_found', reason: 'CEP não encontrado' };
-  }
+  const cleanCep = normalizeCep(cep);
 
-  const cityAvailabilityUrl = envUrl('CITY_AVAILABILITY_API_URL', crmUrl('city-availability'));
-  const extraPhaseIbgeUrl = envUrl('EXTRA_PHASE_IBGE_API_URL', crmUrl('extra-phases/ibge-availability'));
+  console.log('[CEP] validação manual do CEP recebida:', JSON.stringify({
+    cepOriginal: cep,
+    cepNormalizado: cleanCep,
+    protocolo
+  }, null, 2));
 
-  const cityAvailability = await getOptional(async () => {
-    if (!cityAvailabilityUrl || !address.ibge) {
-      return { available: true, stage: 'vigente', reason: '' };
-    }
-
-    return apiGet(cityAvailabilityUrl, {
-      params: {
-        postalCode: address.ibge,
-        protocol: protocolo,
-        'extra-phase': true
-      }
-    });
-  }, { available: true, stage: 'vigente', reason: '' });
-
-  const extraPhase = await getOptional(async () => {
-    if (!extraPhaseIbgeUrl || !address.ibge) return { eligible: true };
-
-    return apiGet(extraPhaseIbgeUrl, {
-      params: {
-        ibge: address.ibge,
-        protocol: protocolo
-      }
-    });
-  }, { eligible: true });
-
-  if (cityAvailability.available === false || cityAvailability.status === false) {
-    return {
-      ok: false,
-      code: cityAvailability.code || 'city_unavailable',
-      reason: cityAvailability.reason || 'Cidade não atendida',
-      address
-    };
-  }
-
-  if (extraPhase.eligible === false || extraPhase.available === false) {
-    return {
-      ok: false,
-      code: extraPhase.code || 'no_extra_phase',
-      reason: extraPhase.reason || 'Sem fase extra para este CEP',
-      address
-    };
+  if (!cleanCep || cleanCep.length !== 8) {
+    return { ok: false, code: 'cep_invalido', reason: 'CEP inválido. Informe os 8 números do CEP.' };
   }
 
   return {
     ok: true,
-    address,
-    stage: cityAvailability.stage || cityAvailability.phase || 'vigente'
+    address: {
+      cep: cleanCep,
+      street: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      ibge: '',
+      complement: ''
+    },
+    stage: 'manual'
   };
 }
