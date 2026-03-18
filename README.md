@@ -74,3 +74,12 @@ Envie de um destes jeitos:
 ## Nova rota adicionada
 
 - `GET /proxy/ticket?document=00165120304&document-type=CPF`
+
+
+## Ajustes aplicados no Flow
+
+- Adicionado schema `data` com `__example__` em todas as telas do `flow.json`.
+- Alinhado o backend para responder apenas com os campos esperados por cada tela.
+- Removida a validação de telefone principal na tela inicial.
+- Incluído campo de `telefone_principal` na tela `CONTATOS`, permitindo seguir mesmo quando a abertura do Flow envia o telefone vazio.
+- Mantido o suporte a uploads de mídia como arrays nas telas de foto.

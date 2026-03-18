@@ -64,14 +64,36 @@ export function queuedResponse({ protocolo, jobId, extra = {} }) {
   });
 }
 
+const SCREEN_FIELDS = {
+  CPF_INPUT: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge','numero','ponto_referencia','resumo_texto','finish_message','status','reason_code','reason','job_id','tipo_documento','doc_frente','doc_verso','selfie_com_doc','comprovante_residencia','fachada','tv_ligada'],
+  CONTATOS: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge'],
+  CONFIRMA_ENDERECO_ONE: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge'],
+  COMPLEMENTAR_ENDERECO_CADASTRAL: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge','numero','ponto_referencia'],
+  ESCOLHER_CAMPO_ENDERECO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge','numero','ponto_referencia'],
+  EDITAR_CAMPO_ENDERECO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge','numero','ponto_referencia','campo_endereco'],
+  CONFIRMA_ENDERECO_AJUSTADO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge','numero','ponto_referencia'],
+  CEP_REINPUT: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge','numero','ponto_referencia'],
+  CONFIRMA_ENDERECO_TWO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge'],
+  ENDERECO_COMPLETO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','bairro','cidade','uf','complemento','ibge'],
+  TIPO_DOCUMENTO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge'],
+  DOC_FRENTE: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento'],
+  DOC_VERSO: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente'],
+  SELFIE_COM_DOC: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente','doc_verso'],
+  COMPROVANTE: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente','doc_verso','selfie_com_doc'],
+  FACHADA: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente','doc_verso','selfie_com_doc','comprovante_residencia'],
+  TV_LIGADA: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente','doc_verso','selfie_com_doc','comprovante_residencia','fachada'],
+  RESUMO_FINAL: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente','doc_verso','selfie_com_doc','comprovante_residencia','fachada','tv_ligada','resumo_texto'],
+  CONFIRMACAO_FINAL: ['protocolo','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','doc_frente','doc_verso','selfie_com_doc','comprovante_residencia','fachada','tv_ligada'],
+  FINISH: ['status','reason_code','reason','protocolo','job_id','cpf','nome','family_code','telefone_principal','telefone_recado','nome_contato_recado','cep','logradouro','numero','bairro','cidade','uf','complemento','ponto_referencia','ibge','tipo_documento','finish_message','doc_frente','doc_verso','selfie_com_doc','comprovante_residencia','fachada','tv_ligada']
+};
+
+function projectDataForScreen(screen, data = {}) {
+  const fields = SCREEN_FIELDS[screen] || Object.keys(data || {});
+  return Object.fromEntries(fields.filter((field) => data[field] !== undefined).map((field) => [field, data[field]]));
+}
+
 function successNext(screen, data = {}, extra = {}) {
-  return screenResponse(screen, {
-    ...data,
-    status: 'success',
-    reason_code: '',
-    reason: '',
-    ...extra
-  });
+  return screenResponse(screen, projectDataForScreen(screen, { ...data, ...extra }));
 }
 
 function normalizeMediaArray(value) {
@@ -82,8 +104,6 @@ function normalizeCommonState(data = {}) {
   return {
     protocolo: protocolFromData(data),
     cpf: normalizeCpf(data.cpf),
-    cpf_attempts: Number(data.cpf_attempts || 0),
-    cpf_feedback: String(data.cpf_feedback || ''),
     nome: String(data.nome || ''),
     family_code: String(data.family_code || data.familyCode || ''),
     telefone_principal: normalizePhone(data.telefone_principal || data.telefone || data.phone),
@@ -217,7 +237,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
 
   switch (screen) {
     case 'INIT':
-      return successNext('CPF_INPUT', state, { cpf_attempts: 0, cpf_feedback: '' });
+      return successNext('CPF_INPUT', state);
 
     case 'CPF_INPUT': {
       const nextState = {
@@ -232,9 +252,7 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         cidade: String(state.cidade || '').trim(),
         uf: String(state.uf || '').trim().toUpperCase(),
         complemento: state.complemento == null ? '' : String(state.complemento).trim(),
-        ibge: String(state.ibge || '').trim(),
-        cpf_attempts: 0,
-        cpf_feedback: ''
+        ibge: String(state.ibge || '').trim()
       };
 
       if (!nextState.cpf) {
@@ -245,13 +263,6 @@ export async function handleFlowStep({ screen, data, enqueueJob }) {
         });
       }
 
-      if (!isValidPhone(nextState.telefone_principal)) {
-        return failureResponse({
-          protocolo: nextState.protocolo,
-          code: 'telefone_principal_invalido',
-          reason: 'Telefone principal inválido para iniciar o fluxo.'
-        });
-      }
 
       const addressExists = hasBaseAddress(nextState);
       return successNext(addressExists ? 'CONFIRMA_ENDERECO_ONE' : 'CEP_REINPUT', nextState);

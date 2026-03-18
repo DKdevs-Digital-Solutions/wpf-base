@@ -135,91 +135,120 @@
       },
       "data": {
         "protocolo": {
-          "type": "string"
+          "type": "string",
+          "__example__": "20265456013"
         },
         "cpf": {
-          "type": "string"
+          "type": "string",
+          "__example__": "00165120304"
         },
         "nome": {
-          "type": "string"
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
         },
         "family_code": {
-          "type": "string"
+          "type": "string",
+          "__example__": "245623"
         },
         "telefone_principal": {
-          "type": "string"
+          "type": "string",
+          "__example__": "85999999999"
         },
         "telefone_recado": {
-          "type": "string"
+          "type": "string",
+          "__example__": "85999999998"
         },
         "nome_contato_recado": {
-          "type": "string"
+          "type": "string",
+          "__example__": "MARIA"
         },
         "cep": {
-          "type": "string"
+          "type": "string",
+          "__example__": "63620000"
         },
         "logradouro": {
-          "type": "string"
+          "type": "string",
+          "__example__": "ACUDE"
         },
         "bairro": {
-          "type": "string"
+          "type": "string",
+          "__example__": "CENTRO"
         },
         "cidade": {
-          "type": "string"
+          "type": "string",
+          "__example__": "SOLONOPOLE"
         },
         "uf": {
-          "type": "string"
+          "type": "string",
+          "__example__": "CE"
         },
         "complemento": {
-          "type": "string"
+          "type": "string",
+          "__example__": "SN"
         },
         "ibge": {
-          "type": "string"
+          "type": "string",
+          "__example__": "2313005"
         },
         "numero": {
-          "type": "string"
+          "type": "string",
+          "__example__": "120"
         },
         "ponto_referencia": {
-          "type": "string"
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
         },
         "resumo_texto": {
-          "type": "string"
+          "type": "string",
+          "__example__": "Resumo final"
         },
         "finish_message": {
-          "type": "string"
+          "type": "string",
+          "__example__": "Fluxo finalizado."
         },
         "status": {
-          "type": "string"
+          "type": "string",
+          "__example__": "success"
         },
         "reason_code": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "reason": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "job_id": {
-          "type": "string"
+          "type": "string",
+          "__example__": "job_123"
         },
         "tipo_documento": {
-          "type": "string"
+          "type": "string",
+          "__example__": "RG"
         },
         "doc_frente": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "doc_verso": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "selfie_com_doc": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "comprovante_residencia": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "fachada": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         },
         "tv_ligada": {
-          "type": "string"
+          "type": "string",
+          "__example__": ""
         }
       }
     },
@@ -232,16 +261,23 @@
         "children": [
           {
             "type": "TextBody",
-            "text": "Complete os dados de contato."
+            "text": "Complete ou confirme os dados de contato."
           },
           {
             "type": "TextBody",
-            "text": "Telefone principal informado: ${data.telefone_principal}"
+            "text": "Telefone principal recebido: ${data.telefone_principal}"
           },
           {
             "type": "Form",
             "name": "form_contatos",
             "children": [
+              {
+                "type": "TextInput",
+                "name": "telefone_principal",
+                "label": "Telefone principal",
+                "required": true,
+                "input-type": "phone"
+              },
               {
                 "type": "TextInput",
                 "name": "telefone_recado",
@@ -265,7 +301,7 @@
                     "cpf": "${data.cpf}",
                     "nome": "${data.nome}",
                     "family_code": "${data.family_code}",
-                    "telefone_principal": "${data.telefone_principal}",
+                    "telefone_principal": "${form.telefone_principal}",
                     "telefone_recado": "${form.telefone_recado}",
                     "nome_contato_recado": "${form.nome_contato_recado}",
                     "cep": "${data.cep}",
@@ -283,6 +319,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        }
       }
     },
     {
@@ -351,6 +453,64 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        }
       }
     },
     {
@@ -418,6 +578,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        }
       }
     },
     {
@@ -488,6 +714,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        }
       }
     },
     {
@@ -541,6 +833,76 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "campo_endereco": {
+          "type": "string",
+          "__example__": "bairro"
+        }
       }
     },
     {
@@ -611,6 +973,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        }
       }
     },
     {
@@ -663,6 +1091,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        }
       }
     },
     {
@@ -731,6 +1225,64 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        }
       }
     },
     {
@@ -792,6 +1344,64 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        }
       }
     },
     {
@@ -854,6 +1464,72 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        }
       }
     },
     {
@@ -908,6 +1584,76 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        }
       }
     },
     {
@@ -963,6 +1709,85 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     },
     {
@@ -1019,6 +1844,94 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     },
     {
@@ -1076,6 +1989,103 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     },
     {
@@ -1134,6 +2144,112 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     },
     {
@@ -1193,6 +2309,121 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     },
     {
@@ -1267,6 +2498,134 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "tv_ligada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "resumo_texto": {
+          "type": "string",
+          "__example__": "Resumo final"
+        }
       }
     },
     {
@@ -1319,6 +2678,130 @@
             ]
           }
         ]
+      },
+      "data": {
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "tv_ligada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     },
     {
@@ -1364,6 +2847,150 @@
             }
           }
         ]
+      },
+      "data": {
+        "status": {
+          "type": "string",
+          "__example__": "success"
+        },
+        "reason_code": {
+          "type": "string",
+          "__example__": ""
+        },
+        "reason": {
+          "type": "string",
+          "__example__": ""
+        },
+        "protocolo": {
+          "type": "string",
+          "__example__": "20265456013"
+        },
+        "job_id": {
+          "type": "string",
+          "__example__": "job_123"
+        },
+        "cpf": {
+          "type": "string",
+          "__example__": "00165120304"
+        },
+        "nome": {
+          "type": "string",
+          "__example__": "JOSE CLEUSENIR COSTA"
+        },
+        "family_code": {
+          "type": "string",
+          "__example__": "245623"
+        },
+        "telefone_principal": {
+          "type": "string",
+          "__example__": "85999999999"
+        },
+        "telefone_recado": {
+          "type": "string",
+          "__example__": "85999999998"
+        },
+        "nome_contato_recado": {
+          "type": "string",
+          "__example__": "MARIA"
+        },
+        "cep": {
+          "type": "string",
+          "__example__": "63620000"
+        },
+        "logradouro": {
+          "type": "string",
+          "__example__": "ACUDE"
+        },
+        "numero": {
+          "type": "string",
+          "__example__": "120"
+        },
+        "bairro": {
+          "type": "string",
+          "__example__": "CENTRO"
+        },
+        "cidade": {
+          "type": "string",
+          "__example__": "SOLONOPOLE"
+        },
+        "uf": {
+          "type": "string",
+          "__example__": "CE"
+        },
+        "complemento": {
+          "type": "string",
+          "__example__": "SN"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "__example__": "PERTO DA PRACA"
+        },
+        "ibge": {
+          "type": "string",
+          "__example__": "2313005"
+        },
+        "tipo_documento": {
+          "type": "string",
+          "__example__": "RG"
+        },
+        "finish_message": {
+          "type": "string",
+          "__example__": "Fluxo finalizado."
+        },
+        "doc_frente": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "doc_verso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "selfie_com_doc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "comprovante_residencia": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "fachada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        },
+        "tv_ligada": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "media_handle_123"
+          ]
+        }
       }
     }
   ]
