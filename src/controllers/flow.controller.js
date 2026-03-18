@@ -18,7 +18,17 @@ export function createFlowController({ privateKey, enqueueJob }) {
     handleFlowWebhook: async (req, res) => {
       try {
         const { decryptedBody, aesKeyBuffer, initialVectorBuffer } = decryptRequest(req.body, privateKey);
-        const { action, version, screen, data } = decryptedBody;
+
+console.log('[FLOW DECRYPTED BODY]', JSON.stringify(decryptedBody, null, 2));
+
+const { action, version, screen, data } = decryptedBody;
+
+console.log('[FLOW ACTION]', {
+  action,
+  version,
+  screen
+});
+
         const normalizedData = extractFlowData(data);
 
         if (action === 'ping') {
